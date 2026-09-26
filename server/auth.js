@@ -71,12 +71,44 @@ export function issueAccessToken({ userId, orgId, role, permVersion }, secret) {
 // `node scripts/check-jwt.js` is the public test suite for this function.
 // ---------------------------------------------------------------------------
 export function verifyAccessToken(token, secret) {
-  // YOURS TO WRITE. Every failure mode listed above must be a 401 UNAUTHENTICATED.
-  // `node scripts/check-jwt.js` is the public suite for this function.
-  throw Object.assign(
-    new Error('TODO: server/auth.js — verifyAccessToken() is yours to write (AUTH-DATA-MODEL.md §10).'),
-    { code: 'NOT_IMPLEMENTED' }
-  );
+  // Every rejection is the same 401. A SyntaxError escaping this function does not
+  // count: check-jwt.js only treats an HttpError as a rejection.
+  const reject = () => {
+    throw unauthenticated('invalid access token');
+  };
+
+  if (typeof token !== 'string') reject();
+  const parts = token.split('.');
+  if (parts.length !== 3) reject();
+  const [h, p, s] = parts;
+  if (!h || !p || !s) reject();
+
+  let header;
+  let payload;
+  let sig;
+  try {
+    header = JSON.parse(unb64(h).toString('utf8'));
+    payload = JSON.parse(unb64(p).toString('utf8'));
+    sig = unb64(s);
+  } catch {
+    reject();
+  }
+
+  // Read the header so we can refuse it. Do not use header.alg to choose a
+  // verifier — HS256 is the only algorithm this process computes.
+  if (!header || typeof header !== 'object' || Array.isArray(header)) reject();
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) reject();
+  if (header.alg !== ALG || header.typ !== 'JWT') reject();
+
+  const expected = createHmac('sha256', secret).update(`${h}.${p}`).digest();
+  if (sig.length !== expected.length || !timingSafeEqual(sig, expected)) reject();
+
+  const now = Math.floor(Date.now() / 1000);
+  if (typeof payload.exp !== 'number' || !Number.isFinite(payload.exp) || payload.exp <= now) reject();
+  if (payload.iss !== ISS || payload.aud !== AUD) reject();
+  if (typeof payload.jti !== 'string' || payload.jti.length === 0) reject();
+
+  return payload;
 }
 
 

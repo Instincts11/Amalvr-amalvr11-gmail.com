@@ -44,8 +44,15 @@ After the fix, `npm run db:reset` seeded 3 orgs, 20 permissions, 27 patterns. Th
 
 ## Phase 1 — token verification
 
-_What did you expect each failure mode to look like before you ran it? Which one behaved
-differently from your expectation, and what did that tell you?_
+### 2026-09-26 — alg:none keeps a valid signature
+
+Expected an HMAC check alone to kill `alg: none`, because `none` has an empty signature. `check-jwt.js` also builds `alg: none, original signature kept`: the header says `none`, the signature is the real HS256 over the same payload. If the verifier ignores `header.alg` and only checks the HMAC, that token is accepted. Pinning `header.alg === 'HS256'` and `header.typ === 'JWT'` before `timingSafeEqual` is what rejects it. The algorithm is never taken from the header; HS256 is the only computation.
+
+`exp <= now` (not `<`) is the other boundary. `exp exactly now` is in the suite and is a 401.
+
+A parse failure has to be caught inside the function. Phase 0 showed the harness printing `Error: ...` rather than `401 UNAUTHENTICATED` for the stub, so a `JSON.parse` exception would fail the malformed-header cases the same way.
+
+`node scripts/check-jwt.js` — ALL PASS, 43 passed, 0 failed.
 
 ## Phase 2 — caller context and the resolution engine
 
