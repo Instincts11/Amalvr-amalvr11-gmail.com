@@ -196,6 +196,10 @@ The content-type rejection called `req.destroy()`. On Windows that resets the so
 
 `Grants` is `web/grants.jsx`. The checkbox keys are `catalogue`, which the shell builds with `Object.keys(session.permissions)`. This checkout includes `device:reboot` only because the login payload included it. `grant-row` still carries `data-effect`. `new-grant`, `grant-user`, `grant-device`, `grant-effect`, and `grant-submit` did not move their test ids.
 
+### 2026-09-26 — a device row still carries its own permission set
+
+`Devices` is `web/devices.jsx`. Each row still reads `device.permissions`, not the caller's org-level set. That is why a control button can be absent on one device and present on the next. `device-row`, `data-device-id`, `devices-empty`, and the action test ids are the same. File transfer still only records authorisation.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
