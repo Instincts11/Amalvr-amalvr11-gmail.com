@@ -212,6 +212,10 @@ The box narrows rows already in memory by name or kind. An empty box renders eve
 
 The sign-in email input is `autoFocus`. The error alert is still `role="alert"` and `data-error-code`, and it is cleared at the start of the next submit, not on each keystroke. The people invite form had an accessible name and no `label`. It now has `htmlFor` on email and role. The login test ids are untouched.
 
+### 2026-09-26 — session expiry is a column, not a new permission
+
+The sessions list already returns `expires_at`. The table prints that timestamp as UTC. There is no client countdown and no extra request. `session-row` and `stop-session` are unchanged. A permission change still does not clear this column; the row stays until the server says the session ended.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.

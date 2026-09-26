@@ -2,6 +2,13 @@ import React from 'react';
 import { api } from './api.js';
 import { Action, held } from './action.jsx';
 
+function expiryLabel(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return `${date.toISOString().replace('T', ' ').slice(0, 16)} UTC`;
+}
+
 export function Sessions({ orgId, sessions, perms, selfId, setSessions, setView, run }) {
   return (
     <section>
@@ -11,13 +18,14 @@ export function Sessions({ orgId, sessions, perms, selfId, setSessions, setView,
       </div>
       <p className="muted">A live session keeps the authority it started with. Hiding a button does not end it.</p>
       <table>
-        <thead><tr><th>Device</th><th>Mode</th><th>State</th><th></th></tr></thead>
+        <thead><tr><th>Device</th><th>Mode</th><th>State</th><th>Expires</th><th></th></tr></thead>
         <tbody>
           {sessions.map((row) => (
             <tr key={row.id} data-testid="session-row">
               <td className="mono">{row.device_id}</td>
               <td>{row.mode}</td>
               <td>{row.state}{row.end_reason ? ` · ${row.end_reason}` : ''}</td>
+              <td className="mono">{expiryLabel(row.expires_at)}</td>
               <td>
                 {row.state === 'active' && (row.user_id === selfId || held(perms, 'session:terminate')) && (
                   <button
