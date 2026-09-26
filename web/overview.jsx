@@ -21,6 +21,36 @@ function Block({ pageKey, title, open, children }) {
   );
 }
 
+function tally(items, key) {
+  const map = new Map();
+  for (const item of items) {
+    const label = item?.[key] || 'none';
+    map.set(label, (map.get(label) || 0) + 1);
+  }
+  return [...map.entries()].map(([label, value]) => ({ label, value }));
+}
+
+function Bars({ title, rows, deny }) {
+  const max = Math.max(1, ...rows.map((row) => row.value));
+  return (
+    <div>
+      <p className="text-lg text-[#f4fff2]">{title}</p>
+      {rows.length === 0 && <p className="mt-2 text-sm text-[#7f8c82]">Nothing recorded.</p>}
+      {rows.map((row) => (
+        <div key={row.label} className="mt-3">
+          <div className="flex items-baseline justify-between text-sm">
+            <span className={row.label === deny ? 'text-[#ff8b96]' : 'text-[#39FF14]'}>{row.label}</span>
+            <span className="text-[#7f8c82]">{row.value}</span>
+          </div>
+          <div className="mt-1 h-2 bg-[#1a2420]">
+            <div className={row.label === deny ? 'h-2 bg-[#ff8b96]' : 'h-2 bg-[#39FF14]'} style={{ width: `${Math.round((row.value / max) * 100)}%` }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Meter({ label, value, max, hint }) {
   const width = max > 0 ? Math.round((value / max) * 100) : 0;
   return (
@@ -98,6 +128,18 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
               <p className={`mt-2 ${kicker}`}>{stat.label}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="mt-6 border border-[#1a2420] px-5 py-5">
+        <p className={kicker}>Picture</p>
+        <h3 className="mt-1 text-2xl tracking-[-0.03em] text-[#f4fff2]">The organization at a glance</h3>
+        <div className="mt-6 grid gap-8 md:grid-cols-2">
+          {showDevices && <Bars title="Devices by kind" rows={tally(devices, 'kind')} />}
+          {showPeople && <Bars title="People by role" rows={tally(members, 'role')} />}
+          {showPeople && <Bars title="Grants" rows={tally(grants, 'effect')} deny="deny" />}
+          {showSessions && <Bars title="Sessions by mode" rows={tally(sessions, 'mode')} />}
+          {showAudit && <Bars title="Audit results" rows={tally(events, 'result')} deny="deny" />}
         </div>
       </section>
 
