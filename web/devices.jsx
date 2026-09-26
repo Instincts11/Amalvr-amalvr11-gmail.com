@@ -55,15 +55,15 @@ export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDev
           <h2 className={pageTitle}>Devices</h2>
         <div className="flex items-end gap-8">
           <div>
-            <p className="text-[2.4rem] leading-none tracking-[-0.04em]">{devices.length}</p>
+            <p className="text-[2rem] leading-none tracking-[-0.04em]">{devices.length}</p>
             <p className={`mt-2 ${kicker}`}>Total</p>
           </div>
           <div>
-            <p className="text-[2.4rem] leading-none tracking-[-0.04em] text-[#39FF14]">{online}</p>
+            <p className="text-[2rem] leading-none tracking-[-0.04em] text-[#39FF14]">{online}</p>
             <p className={`mt-2 ${kicker}`}>Live</p>
           </div>
           <div>
-            <p className="text-[2.4rem] leading-none tracking-[-0.04em]">{devices.length - online}</p>
+            <p className="text-[2rem] leading-none tracking-[-0.04em]">{devices.length - online}</p>
             <p className={`mt-2 ${kicker}`}>Quiet</p>
           </div>
         </div>

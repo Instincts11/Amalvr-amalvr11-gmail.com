@@ -84,7 +84,7 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
     <div>
       <p className={kicker}>Start</p>
       <h2 className={pageTitle}>{org.name}</h2>
-      <div className="mt-3 w-full space-y-3 text-xl leading-8 text-[#7f8c82]">
+      <div className="mt-3 w-full space-y-3 text-base leading-7 text-[#7f8c82]">
         <p>{role}. Sessions are records. This role cannot see another organization, and there is no super-admin who can.</p>
         <p>The figures count the full lists. Each section below is that same list, filtered and paged. Open page leaves the summary for the working view.</p>
         <p>View, control, terminal, and file transfer write a record. They do not open a screen, run a shell, or move bytes.</p>
@@ -94,7 +94,7 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
         <div className={`mt-4 grid grid-cols-2 gap-6 sm:grid-cols-3 ${stats.length > 3 ? 'lg:grid-cols-6' : ''}`}>
           {stats.map((stat) => (
             <div key={stat.label}>
-              <p className="text-[2.4rem] leading-none tracking-[-0.04em] text-[#39FF14]">{stat.value}</p>
+              <p className="text-[2rem] leading-none tracking-[-0.04em] text-[#39FF14]">{stat.value}</p>
               <p className={`mt-2 ${kicker}`}>{stat.label}</p>
             </div>
           ))}
@@ -211,7 +211,7 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
 
       {showAdmin && (
         <Block pageKey="admin" title="Admin" open={open}>
-          <p className="w-full text-xl leading-8 text-[#7f8c82]">{org.name} · {org.theme}. Rename and delete stay on the admin page.</p>
+          <p className="w-full text-base leading-7 text-[#7f8c82]">{org.name} · {org.theme}. Rename and delete stay on the admin page.</p>
         </Block>
       )}
     </div>

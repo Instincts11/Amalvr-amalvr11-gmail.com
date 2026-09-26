@@ -41,7 +41,7 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className={pageTitle}>People</h2>
-          <div className="mt-3 w-full space-y-3 text-xl leading-8 text-[#7f8c82]">
+          <div className="mt-3 w-full space-y-3 text-base leading-7 text-[#7f8c82]">
             <p>{members.length} people in this organization.</p>
             <p>Roles and ranks are read from the database. The page does not keep its own permission table.</p>
             <p>The last owner cannot leave, be removed, be suspended, or be demoted. Anyone else needs a strictly higher rank to change a membership.</p>
@@ -139,19 +139,20 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
           {selected && (
             <>
               <p className={kicker}>Selected</p>
-              <h3 className="mt-3 text-5xl leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">{selected.name}</h3>
-              <p className="mt-4 text-xl text-[#7f8c82]">{selected.email}</p>
+              <h3 className="mt-3 text-4xl leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">{selected.name}</h3>
+              <p className="mt-3 text-base text-[#7f8c82]">{selected.email}</p>
               <p className="mt-6 flex gap-6">
                 <span className={kicker}>{effective?.role ?? selected.role}</span>
                 <span className={kicker}>{selected.status}</span>
               </p>
               {effective && (
-                <div className="mt-8 max-h-64 overflow-auto border-t border-[#1a2420] pt-4">
+                <div className="mt-8 w-full border-t border-[#1a2420] pt-4">
                   <p className={kicker}>Resolved by the server</p>
-                  <ul className="mt-3 space-y-1 text-xs text-[#7f8c82]">
+                  <ul className="mt-3 w-full">
                     {Object.entries(effective.permissions ?? {}).map(([key, item]) => (
-                      <li key={key} className={item.effect === 'allow' ? 'text-[#39FF14]' : undefined}>
-                        {key} · {item.effect}{item.reason ? ` · ${item.reason}` : ''}{item.source ? ` · ${item.source}` : ''}
+                      <li key={key} className="flex w-full items-baseline justify-between gap-8 border-b border-[#1a2420] py-2 text-sm">
+                        <span className={item.effect === 'allow' ? 'text-[#39FF14]' : 'text-[#ff8b96]'}>{key}</span>
+                        <span className="text-right text-[#7f8c82]">{item.effect}{item.reason ? ` · ${item.reason}` : ''}{item.source ? ` · ${item.source}` : ''}</span>
                       </li>
                     ))}
                   </ul>

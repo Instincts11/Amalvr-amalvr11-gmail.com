@@ -36,8 +36,8 @@ export function Grants({ orgId, grants, perms, catalogue, open, setOpen, run, on
     <section>
       <header className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Grants</h2>
-          <div className="mt-3 w-full space-y-3 text-xl leading-8 text-[#7f8c82]">
+          <h2 className="text-[2.6rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Grants</h2>
+          <div className="mt-3 w-full space-y-3 text-base leading-7 text-[#7f8c82]">
             <p>Allow or deny on top of the role. A deny beats every allow, including a grant that names one device.</p>
             <p>A grant is live from its start until, and not including, its end. After that it no longer applies.</p>
             <p>A wildcard such as device:* covers every permission on that resource, including ones added after the grant was written.</p>
