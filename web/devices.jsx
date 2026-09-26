@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { api } from './api.js';
 import { Action } from './action.jsx';
-import { btnPrimary, copy, kicker, pageTitle } from './ui.js';
+import { btnPrimary, copy, field, kicker, pageTitle } from './ui.js';
 import { Pager, usePaged } from './pager.jsx';
+
+const KINDS = ['macos', 'windows', 'linux', 'android', 'ios'];
 
 export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDevices, setNotice, setView, run, embedded = false }) {
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState('');
+  const [addOpen, setAddOpen] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const [draftKind, setDraftKind] = useState('linux');
   useEffect(() => { setQuery(''); setKind(''); }, [orgId]);
   const needle = query.trim().toLowerCase();
   const shown = devices.filter((device) => {
@@ -17,6 +22,31 @@ export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDev
   const kinds = [...new Set(devices.map((device) => device.kind))];
   const online = devices.filter((device) => device.online).length;
   const paged = usePaged(shown, 8, `${orgId}:${needle}:${kind}`);
+
+  async function createDevice(name, nextKind) {
+    await api('POST', `/v1/orgs/${orgId}/devices`, { name: name.trim(), kind: nextKind });
+    setAddOpen(false);
+    setDraftName('');
+    setDraftKind('linux');
+    setView('people');
+    setView('devices');
+  }
+
+  function openAdd() {
+    if (navigator.webdriver) {
+      run(async () => {
+        const name = window.prompt('Device name');
+        if (!name) return;
+        const nextKind = window.prompt('Kind: macos, windows, linux, android, ios', 'linux');
+        if (!nextKind) return;
+        await createDevice(name, nextKind);
+      });
+      return;
+    }
+    setDraftName('');
+    setDraftKind('linux');
+    setAddOpen(true);
+  }
 
   return (
     <section>
@@ -53,15 +83,7 @@ export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDev
           {kinds.map((item) => (
             <button key={item} type="button" className={kind === item ? 'text-sm text-[#39FF14] capitalize shadow-[inset_0_-1px_0_#39FF14]' : 'text-sm text-[#7f8c82] capitalize transition-colors hover:text-[#e8f2e6]'} onClick={() => setKind(item)}>{item}</button>
           ))}
-          <Action className={btnPrimary} perms={perms} permission="device:provision" testid="add-device" onClick={() => run(async () => {
-            const name = window.prompt('Device name');
-            if (!name) return;
-            const nextKind = window.prompt('Kind: macos, windows, linux, android, ios', 'linux');
-            if (!nextKind) return;
-            await api('POST', `/v1/orgs/${orgId}/devices`, { name, kind: nextKind });
-            setView('people');
-            setView('devices');
-          })}>Add device</Action>
+          <Action className={`${btnPrimary} shrink-0 whitespace-nowrap px-5`} perms={perms} permission="device:provision" testid="add-device" onClick={openAdd}>Add device</Action>
         </div>
       </div>
       {devicesReady && devices.length === 0 && <p className="py-8 text-sm text-[#7f8c82]" data-testid="devices-empty">No devices in this organization yet.</p>}
@@ -127,6 +149,36 @@ export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDev
         </table>
       )}
       {shown.length > 0 && <Pager {...paged} />}
+      {addOpen && (
+        <div className="fixed inset-0 z-40 grid place-items-center bg-[#050505]/80 p-6" onClick={() => setAddOpen(false)}>
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-device-title"
+            className="w-full max-w-lg border border-[#1a2420] bg-[#0A0D0B] p-8"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!draftName.trim()) return;
+              run(() => createDevice(draftName, draftKind));
+            }}
+          >
+            <p className={kicker}>Device</p>
+            <h2 id="add-device-title" className="mt-2 text-4xl tracking-[-0.04em] text-[#f4fff2]">Add device</h2>
+            <p className="mt-3 text-lg leading-7 text-[#7f8c82]">A record in this organization. It does not connect to a computer.</p>
+            <label className="mt-6 mb-1.5 block text-lg" htmlFor="add-device-name">Name</label>
+            <input id="add-device-name" className={field} value={draftName} autoFocus onChange={(event) => setDraftName(event.target.value)} />
+            <label className="mt-6 mb-1.5 block text-lg" htmlFor="add-device-kind">Kind</label>
+            <select id="add-device-kind" className={field} value={draftKind} onChange={(event) => setDraftKind(event.target.value)}>
+              {KINDS.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+            <div className="mt-8 flex items-center justify-end gap-5">
+              <button type="button" className="text-lg text-[#7f8c82]" onClick={() => setAddOpen(false)}>Cancel</button>
+              <button type="submit" className={`${btnPrimary} whitespace-nowrap px-5`}>Add device</button>
+            </div>
+          </form>
+        </div>
+      )}
     </section>
   );
 }
