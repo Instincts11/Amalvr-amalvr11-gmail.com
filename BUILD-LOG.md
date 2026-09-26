@@ -226,6 +226,10 @@ The schema checks `email = lower(email)`. Folding case in the route would hide a
 
 `trim()` already rejected a name of spaces. It does not remove U+200B, so a name of only a zero-width space passed `if (!name)` and inserted. Create and rename now strip C0 controls, DEL, and the zero-width characters, then apply the same empty and 80-character check. A real duplicate is still 409. `E2E Fresh Org` is unchanged by the strip.
 
+### 2026-09-26 — the ops choices are in DECISIONS, not only in the log
+
+Health stays off `/v1`. A content type is required only once a body byte arrives. CSP, rate limits, and gating `POST /orgs` on suspension stay rejected. The four-part write-up cites `ea43c40`, `70e75a3`, `5ef13ec`, and `48e46bc`.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.

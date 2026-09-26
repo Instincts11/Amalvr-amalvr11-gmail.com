@@ -137,6 +137,15 @@ D6 says the question always names a device, then says navigation does not. I tre
 
 ---
 
+### Health is not an API route, and JSON is required only when a body exists
+
+**What I chose:** `GET /healthz` runs `SELECT 1` and never calls `authenticate`. `readJson` checks `content-type` only after a byte arrives, so `POST /v1/auth/logout` with an empty body stays 200.
+**Why:** `ea43c40` is the route, next to `/v1` in `server/index.js`. `70e75a3` is the content-type check. The first version called `req.destroy()` and Windows reset the socket before the 400 was written; `5ef13ec` drains the body instead. `scripts/check-ops.js` (`48e46bc`) asserts `{ ok: true }`, the three security headers, a `text/plain` login as 400, an empty logout as 200, and a body over 1 MB as 400.
+**What I rejected:** A Content-Security-Policy. Vite's development middleware needs inline refresh, and a policy loose enough to allow that is not a control. Rate limiting. The starter lists it as out of scope and the suites log in on every test. Gating `POST /orgs` on the caller not being suspended. That route is authenticated only; the empty permission set is not consulted because the route never calls `resolve`.
+**What would change my mind:** A check that treats `/healthz` as a `/v1` route, or a client that posts a non-empty body without `application/json` and is specified to succeed. I would add a content policy when the same policy works for `npm run dev` and `npm start`.
+
+---
+
 ## Deliberately not built
 
 - **Rate limiting, email delivery, password reset.** The starter lists them as out of scope. A limit low enough to matter would fail `check-api.js` and the UI suite, which log in on every test.
