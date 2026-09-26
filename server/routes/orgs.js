@@ -20,6 +20,10 @@ import { allow } from './guard.js';
 
 const THEMES = ['cobalt', 'amber', 'moss', 'plum', 'rust', 'teal', 'pine', 'iris'];
 
+function orgName(value) {
+  return String(value ?? '').replace(/[\u0000-\u001F\u007F\u200B-\u200D\uFEFF]/g, '').trim();
+}
+
 function liveOrg(db, orgId) {
   return db.prepare(
     `SELECT id, name, theme, max_session_minutes FROM organizations WHERE id = ? AND deleted_at IS NULL`
@@ -54,7 +58,7 @@ export function registerOrgs(router, { db }) {
   });
 
   router.post('/v1/orgs', (ctx, _params, res) => {
-    const name = String(ctx.body.name ?? '').trim();
+    const name = orgName(ctx.body.name);
     if (!name || name.length > 80) throw badRequest('name is required');
     let theme = String(ctx.body.theme ?? '').trim().toLowerCase();
     if (theme && !/^[a-z][a-z0-9-]{0,20}$/.test(theme)) throw badRequest('theme must be a short slug');
@@ -93,7 +97,7 @@ export function registerOrgs(router, { db }) {
   router.patch('/v1/orgs/:org', (ctx, params, res) => {
     allow(db, ctx, 'org:update', null, { action: 'org.update', targetType: 'org', targetId: params.org });
     if (!liveOrg(db, params.org)) throw notFound();
-    const name = ctx.body.name === undefined ? null : String(ctx.body.name).trim();
+    const name = ctx.body.name === undefined ? null : orgName(ctx.body.name);
     const theme = ctx.body.theme === undefined ? null : String(ctx.body.theme).trim().toLowerCase();
     let minutes = ctx.body.maxSessionMinutes;
     if (name !== null && (!name || name.length > 80)) throw badRequest('name is required');
