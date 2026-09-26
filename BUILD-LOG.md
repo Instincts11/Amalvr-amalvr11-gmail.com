@@ -208,6 +208,10 @@ Sessions and audit are `web/activity.jsx`. A stop button on your own active row 
 
 The box narrows rows already in memory by name or kind. An empty box renders every row the list endpoint returned, each still `device-row` with `data-device-id`. `devices-empty` stays reserved for an organization that has no devices. A filter that matches nothing is a different sentence and does not use that test id. Switching org clears the box, so a needle from Acme cannot hide Globex rows.
 
+### 2026-09-26 — focus starts in the email field
+
+The sign-in email input is `autoFocus`. The error alert is still `role="alert"` and `data-error-code`, and it is cleared at the start of the next submit, not on each keystroke. The people invite form had an accessible name and no `label`. It now has `htmlFor` on email and role. The login test ids are untouched.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.

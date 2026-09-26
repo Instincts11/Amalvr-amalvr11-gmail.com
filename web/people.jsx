@@ -20,8 +20,10 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
             window.prompt('Invite token — copy it now. It will not be shown again.', created.inviteToken);
           });
         }}>
-          <input aria-label="Invite email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email" />
-          <select aria-label="Invite role" value={role} onChange={(e) => setRole(e.target.value)}>
+          <label htmlFor="people-invite-email">Email</label>
+          <input id="people-invite-email" aria-label="Invite email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email" />
+          <label htmlFor="people-invite-role">Role</label>
+          <select id="people-invite-role" aria-label="Invite role" value={role} onChange={(e) => setRole(e.target.value)}>
             {roles.map((item) => <option key={item.key} value={item.key}>{item.key}</option>)}
           </select>
           <button type="submit">Send invite</button>

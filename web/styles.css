@@ -161,6 +161,10 @@ input, select {
   padding: 6px 10px;
 }
 
+.inline label {
+  margin: 0;
+}
+
 .toolbar, .row-actions, .inline {
   display: flex;
   flex-wrap: wrap;
