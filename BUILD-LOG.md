@@ -148,6 +148,12 @@ The four are membership, role baseline, catalogue, and the caller's grants. The 
 
 Not built, on purpose: rate limits (they would make the public suites timing-sensitive, and the starter lists them as out of scope), email delivery, password reset, and any byte stream for control, terminal, or file transfer. File transfer writes an audit row and returns `movedBytes: false`.
 
+## Phase 9 — operations
+
+### 2026-09-26 — production start is a Node script
+
+`npm start` was `NODE_ENV=production node server/index.js`. That prefix is a shell assignment. cmd.exe treats it as the program name and the process never boots. `scripts/start.js` sets `NODE_ENV` and then imports the server, so the same `npm start` works on Windows and on the Linux checkout a grader uses. `npm run dev` is unchanged and still leaves `NODE_ENV` unset.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
