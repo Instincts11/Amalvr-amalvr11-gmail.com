@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { api } from './api.js';
-import { Action } from './action.jsx';
+import { Action, held } from './action.jsx';
 import { btnPrimary, copy, field, kicker, pageTitle } from './ui.js';
 import { Pager, usePaged } from './pager.jsx';
 
 const KINDS = ['macos', 'windows', 'linux', 'android', 'ios'];
 
-export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDevices, setNotice, setView, run, embedded = false }) {
+export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDevices, setSessions, setNotice, setView, run, embedded = false }) {
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState('');
   const [addOpen, setAddOpen] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [draftKind, setDraftKind] = useState('linux');
+  const [result, setResult] = useState(null);
   useEffect(() => { setQuery(''); setKind(''); }, [orgId]);
   const needle = query.trim().toLowerCase();
   const shown = devices.filter((device) => {
@@ -30,6 +31,27 @@ export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDev
     setDraftKind('linux');
     setView('people');
     setView('devices');
+  }
+
+  async function refreshSessions() {
+    if (!setSessions || !held(perms, 'session:view')) return;
+    const body = await api('GET', `/v1/orgs/${orgId}/sessions`);
+    setSessions(body.sessions);
+  }
+
+  async function startMode(device, mode) {
+    const created = await api('POST', `/v1/orgs/${orgId}/sessions`, { deviceId: device.id, mode });
+    await refreshSessions().catch(() => {});
+    const text = `${mode} recorded for ${device.name}. Session ${created.id} is active. The other computer was not contacted.`;
+    setResult({ deviceId: device.id, text });
+    setNotice(text);
+  }
+
+  async function transferFiles(device) {
+    await api('POST', `/v1/orgs/${orgId}/devices/${device.id}/file-transfer`, {});
+    const text = `File transfer recorded for ${device.name}. No bytes moved. The other computer was not contacted.`;
+    setResult({ deviceId: device.id, text });
+    setNotice(text);
   }
 
   function openAdd() {
@@ -111,13 +133,10 @@ export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDev
                 </td>
                 <td className="py-4">
                   <div className="flex flex-wrap gap-1.5">
-                    <Action perms={device.permissions} permission="device:view" testid="start-view" onClick={() => run(() => api('POST', `/v1/orgs/${orgId}/sessions`, { deviceId: device.id, mode: 'view' }))}>View</Action>
-                    <Action perms={device.permissions} permission="device:control" testid="start-control" onClick={() => run(() => api('POST', `/v1/orgs/${orgId}/sessions`, { deviceId: device.id, mode: 'control' }))}>Control</Action>
-                    <Action perms={device.permissions} permission="device:terminal" testid="start-terminal" onClick={() => run(() => api('POST', `/v1/orgs/${orgId}/sessions`, { deviceId: device.id, mode: 'terminal' }))}>Terminal</Action>
-                    <Action perms={device.permissions} permission="device:file_transfer" testid="transfer-files" onClick={() => run(async () => {
-                      await api('POST', `/v1/orgs/${orgId}/devices/${device.id}/file-transfer`, {});
-                    setNotice('Authorisation recorded. No bytes moved. The other computer was not contacted.');
-                  })}>Transfer files</Action>
+                    <Action perms={device.permissions} permission="device:view" testid="start-view" onClick={() => run(() => startMode(device, 'view'))}>View</Action>
+                    <Action perms={device.permissions} permission="device:control" testid="start-control" onClick={() => run(() => startMode(device, 'control'))}>Control</Action>
+                    <Action perms={device.permissions} permission="device:terminal" testid="start-terminal" onClick={() => run(() => startMode(device, 'terminal'))}>Terminal</Action>
+                    <Action perms={device.permissions} permission="device:file_transfer" testid="transfer-files" onClick={() => run(() => transferFiles(device))}>Transfer files</Action>
                     <Action perms={device.permissions} permission="device:provision" testid="transfer-device" onClick={() => run(async () => {
                       const choices = orgs.filter((item) => item.id !== orgId);
                       if (!choices.length) {
@@ -142,6 +161,7 @@ export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDev
                       setDevices((rows) => rows.filter((row) => row.id !== device.id));
                     })}>Decommission</Action>
                   </div>
+                  {result?.deviceId === device.id && <p className="mt-2 max-w-md text-xs leading-5 text-[#39FF14]" data-testid="device-action-result">{result.text}</p>}
                 </td>
               </tr>
             ))}

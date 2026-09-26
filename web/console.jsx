@@ -173,13 +173,13 @@ function Console({ session, setSession }) {
         setRoles(body.roles);
       }).catch(fail);
     }
-    if ((view === 'home' || view === 'grants' || personId) && held(perms, 'user:read')) {
+    if ((view === 'home' || view === 'grants' || view === 'people' || personId) && held(perms, 'user:read')) {
       api('GET', `${path}/grants`).then((body) => { if (!cancel) setGrants(body.grants); }).catch(fail);
     }
-    if ((view === 'home' || view === 'sessions' || personId) && held(perms, 'session:view')) {
+    if ((view === 'home' || view === 'sessions' || view === 'people' || personId) && held(perms, 'session:view')) {
       api('GET', `${path}/sessions`).then((body) => { if (!cancel) setSessions(body.sessions); }).catch(fail);
     }
-    if ((view === 'home' || view === 'audit' || personId) && held(perms, 'audit:read')) {
+    if ((view === 'home' || view === 'audit' || view === 'people' || personId) && held(perms, 'audit:read')) {
       api('GET', `${path}/audit?limit=200`).then((body) => { if (!cancel) setEvents(body.events); }).catch(fail);
     }
     return () => { cancel = true; };
@@ -357,6 +357,7 @@ function Console({ session, setSession }) {
                   devicesReady={devicesReady}
                   perms={perms}
                   setDevices={setDevices}
+                  setSessions={setSessions}
                   setNotice={setNotice}
                   setView={setView}
                   run={run}
@@ -373,6 +374,7 @@ function Console({ session, setSession }) {
             devicesReady={devicesReady}
             perms={perms}
             setDevices={setDevices}
+            setSessions={setSessions}
             setNotice={setNotice}
             setView={setView}
             run={run}
@@ -394,7 +396,7 @@ function Console({ session, setSession }) {
           />
         )}
         {view === 'people' && !personId && (
-          <People orgId={org.id} members={members} roles={roles} perms={perms} selfId={session.user.id} inviteOpen={inviteOpen} setInviteOpen={setInviteOpen} run={run} onOpen={openPerson} reload={() => setView('devices') || setTimeout(() => setView('people'), 0)} />
+          <People orgId={org.id} members={members} roles={roles} perms={perms} selfId={session.user.id} grants={grants} sessions={sessions} events={events} inviteOpen={inviteOpen} setInviteOpen={setInviteOpen} run={run} onOpen={openPerson} reload={() => setView('devices') || setTimeout(() => setView('people'), 0)} />
         )}
         {view === 'grants' && (
           <Grants

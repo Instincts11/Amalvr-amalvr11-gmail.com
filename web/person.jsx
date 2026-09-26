@@ -17,25 +17,191 @@ function Pill({ on, children, onClick }) {
   );
 }
 
-function Share({ allows, denies }) {
-  const total = allows + denies;
-  const allowPct = total > 0 ? (allows / total) * 100 : 0;
-  const denyPct = total > 0 ? 100 - allowPct : 0;
+function tapePoints(permissions, events) {
+  const entries = Object.entries(permissions ?? {});
+  if (entries.length >= 2) {
+    let value = 0;
+    return entries.map(([key, item]) => {
+      const deny = item.effect === 'deny';
+      value += deny ? -1 : 1;
+      return { label: key, value, deny };
+    });
+  }
+  const audit = [...(events || [])]
+    .filter((event) => event?.at)
+    .sort((a, b) => String(a.at).localeCompare(String(b.at)));
+  let value = 0;
+  return audit.map((event) => {
+    const deny = event.result === 'deny';
+    value += deny ? -1 : 1;
+    const stamp = String(event.at);
+    const label = stamp.length >= 16 ? stamp.slice(5, 16).replace('T', ' ') : stamp;
+    return { label, value, deny };
+  });
+}
+
+function StockTape({ allows, denies, permissions, events }) {
+  const points = tapePoints(permissions, events);
+  const values = points.map((point) => point.value);
+  const min = values.length ? Math.min(...values, 0) : 0;
+  const max = values.length ? Math.max(...values, 1) : 1;
+  const span = max - min || 1;
+  const width = 1000;
+  const plotRight = 940;
+  const top = 16;
+  const bottom = 268;
+  const volTop = 292;
+  const volBottom = 360;
+  const xAt = (index) => (points.length <= 1 ? plotRight / 2 : (index / (points.length - 1)) * plotRight);
+  const yAt = (value) => bottom - ((value - min) / span) * (bottom - top);
+  const line = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${xAt(index).toFixed(1)} ${yAt(point.value).toFixed(1)}`).join(' ');
+  const area = points.length
+    ? `${line} L ${xAt(points.length - 1).toFixed(1)} ${bottom} L ${xAt(0).toFixed(1)} ${bottom} Z`
+    : '';
+  const rising = points.length < 2 || points[points.length - 1].value >= points[0].value;
+  const stroke = rising ? '#39FF14' : '#ff8b96';
+  const net = allows - denies;
+  const ticks = [max, min + span / 2, min];
+  const marks = [...new Set(points.length <= 5
+    ? points.map((_, index) => index)
+    : [0, 0.25, 0.5, 0.75, 1].map((step) => Math.round((points.length - 1) * step)))];
+  const last = points.length - 1;
+  const slot = points.length <= 1 ? 14 : plotRight / points.length;
+  const barW = Math.min(16, Math.max(2, slot * 0.62));
+  const [hover, setHover] = useState(null);
+  const focus = hover == null ? null : points[hover];
+
+  function track(event) {
+    if (!points.length) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * width;
+    if (x < 0 || x > plotRight) {
+      setHover(null);
+      return;
+    }
+    let nearest = 0;
+    let best = Infinity;
+    for (let index = 0; index < points.length; index += 1) {
+      const distance = Math.abs(xAt(index) - x);
+      if (distance < best) {
+        best = distance;
+        nearest = index;
+      }
+    }
+    setHover((current) => (current === nearest ? current : nearest));
+  }
+
   return (
-    <div className="w-full">
-      <div className="relative h-72 w-72">
-        <div className="h-full w-full rounded-full" style={{ background: `conic-gradient(#39FF14 0% ${allowPct}%, #ff8b96 ${allowPct}% 100%)` }} />
-        <div className="absolute inset-12 grid place-items-center rounded-full bg-[#050505] text-5xl text-[#f4fff2]">{total}</div>
+    <figure className="w-full">
+      <figcaption className="mb-4 flex w-full items-end justify-between gap-8">
+        <div>
+          <p className={kicker}>Permission tape</p>
+          <p className="mt-1 text-5xl tracking-[-0.04em] text-[#f4fff2]">
+            {allows}
+            <span className="ml-3 align-middle text-lg text-[#39FF14]">allow</span>
+          </p>
+        </div>
+        <div className="text-right">
+          <p className={net >= 0 ? 'text-3xl tracking-[-0.03em] text-[#39FF14]' : 'text-3xl tracking-[-0.03em] text-[#ff8b96]'}>
+            {net >= 0 ? '+' : ''}{net}
+          </p>
+          <p className="text-lg text-[#ff8b96]">{denies} deny</p>
+        </div>
+      </figcaption>
+      <div
+        className="relative h-[32rem] w-full cursor-crosshair border border-[#1a2420]"
+        data-testid="permission-tape"
+        onPointerMove={track}
+        onPointerLeave={() => setHover(null)}
+      >
+        <svg className="absolute inset-0 h-full w-full" viewBox={`0 0 ${width} 400`} preserveAspectRatio="none" role="img" aria-label="Permission tape, allow minus deny">
+          <defs>
+            <linearGradient id="tape-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={stroke} stopOpacity="0.38" />
+              <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[0, 0.25, 0.5, 0.75, 1].map((step) => {
+            const y = top + (bottom - top) * step;
+            return <line key={step} x1="0" x2={plotRight} y1={y} y2={y} stroke="#1a2420" strokeWidth="1" vectorEffect="non-scaling-stroke" />;
+          })}
+          {marks.map((index) => (
+            <line key={`v-${index}`} x1={xAt(index)} x2={xAt(index)} y1={top} y2={volBottom} stroke="#1a2420" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+          ))}
+          {points.length > 0 && (
+            <line x1="0" x2={plotRight} y1={yAt(points[last].value)} y2={yAt(points[last].value)} stroke={stroke} strokeWidth="1" strokeDasharray="4 6" vectorEffect="non-scaling-stroke" opacity="0.7" />
+          )}
+          {points.map((point, index) => {
+            const barH = point.deny ? (volBottom - volTop) * 0.42 : (volBottom - volTop) * 0.86;
+            return (
+              <rect
+                key={index}
+                x={xAt(index) - barW / 2}
+                y={volBottom - barH}
+                width={barW}
+                height={barH}
+                fill={point.deny ? '#ff8b96' : '#39FF14'}
+                opacity={hover == null || index === hover ? 0.9 : 0.28}
+              />
+            );
+          })}
+          {area && <path d={area} fill="url(#tape-fill)" />}
+          {line && <path d={line} fill="none" stroke={stroke} strokeWidth="2.25" vectorEffect="non-scaling-stroke" />}
+        </svg>
+        {last >= 0 && (
+          <span
+            className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              left: `${(xAt(last) / width) * 100}%`,
+              top: `${(yAt(points[last].value) / 400) * 100}%`,
+              background: stroke,
+              boxShadow: `0 0 12px ${stroke}`,
+            }}
+          />
+        )}
+        <div className="pointer-events-none absolute right-3 flex flex-col justify-between text-right text-xs text-[#7f8c82]" style={{ top: '4%', height: '63%' }}>
+          {ticks.map((tick, index) => <span key={`${tick}-${index}`}>{Math.round(tick)}</span>)}
+        </div>
+        {marks.map((index, mark) => {
+          const left = (xAt(index) / width) * 100;
+          const align = mark === 0 ? 'translateX(0)' : mark === marks.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)';
+          const active = index === hover;
+          return (
+            <span key={index} className={active ? 'pointer-events-none absolute bottom-3 max-w-[9rem] truncate text-xs text-[#f4fff2]' : 'pointer-events-none absolute bottom-3 max-w-[9rem] truncate text-xs text-[#7f8c82]'} style={{ left: `${left}%`, transform: align }}>
+              {points[index]?.label}
+            </span>
+          );
+        })}
+        {focus && (
+          <>
+            <span className="pointer-events-none absolute top-0 bottom-8 w-px bg-[#e8f2e6]/35" style={{ left: `${(xAt(hover) / width) * 100}%` }} />
+            <span className="pointer-events-none absolute right-[6%] left-0 h-px bg-[#e8f2e6]/35" style={{ top: `${(yAt(focus.value) / 400) * 100}%` }} />
+            <span
+              className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#050505]"
+              style={{
+                left: `${(xAt(hover) / width) * 100}%`,
+                top: `${(yAt(focus.value) / 400) * 100}%`,
+                background: focus.deny ? '#ff8b96' : '#39FF14',
+              }}
+            />
+            <div
+              className="pointer-events-none absolute z-10 border border-[#1a2420] bg-[#0A0D0B] px-3 py-2"
+              data-testid="tape-tip"
+              style={{
+                left: `${(xAt(hover) / width) * 100}%`,
+                top: `${(yAt(focus.value) / 400) * 100}%`,
+                transform: (xAt(hover) / width) > 0.55 ? 'translate(calc(-100% - 14px), -120%)' : 'translate(14px, -120%)',
+              }}
+            >
+              <p className="max-w-[16rem] truncate text-sm text-[#f4fff2]">{focus.label}</p>
+              <p className={focus.deny ? 'text-sm text-[#ff8b96]' : 'text-sm text-[#39FF14]'}>
+                {focus.deny ? 'deny' : 'allow'} · {focus.value >= 0 ? '+' : ''}{focus.value}
+              </p>
+            </div>
+          </>
+        )}
       </div>
-      <div className="mt-8 flex w-full items-baseline justify-between gap-8 text-lg">
-        <span className="text-[#39FF14]">{allows} allow</span>
-        <span className="text-[#ff8b96]">{denies} deny</span>
-      </div>
-      <div className="mt-3 flex h-40 w-full">
-        <div className="h-full bg-[#39FF14]" style={{ width: `${allowPct}%` }} />
-        <div className="h-full bg-[#ff8b96]" style={{ width: `${denyPct}%` }} />
-      </div>
-    </div>
+    </figure>
   );
 }
 
@@ -107,17 +273,20 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
         <div className="min-w-0">
           <p className={kicker}>{tab}</p>
           <h2 className={`mt-1 ${pageTitle}`}>{member.name}</h2>
+        </div>
+      </div>
 
-          <div className="mt-8 w-full">
-            <Share allows={allows} denies={denies} />
-          </div>
+      <div className="mt-8 w-full">
+        <StockTape allows={allows} denies={denies} permissions={effective?.permissions} events={mineEvents} />
+      </div>
 
+      <div className="mt-8 w-full">
           {tab === 'Profile' && (
-            <div className="mt-8 w-full space-y-3 text-base leading-7 text-[#7f8c82]">
+            <div className="w-full space-y-4 text-justify text-base leading-7 text-[#7f8c82]">
               <p>This membership is {member.status}. The role {member.role}{rank ? ` has rank ${rank.rank}` : ''} and is read from the database, not from a table in the page.</p>
               <p>A deny beats every allow. Changing this role bumps the permission version, so the next token is fresh. A session already running keeps the authority it started with.</p>
               <p>The last owner cannot leave, be removed, be suspended, or be demoted. Anyone else needs a strictly higher rank to change this membership.</p>
-              <p>The ring counts the permission set the server resolved for this person. Green is allow. Rose is deny, including an implicit deny where no grant and no role baseline apply.</p>
+              <p>The tape is a running allow-minus-deny line for this person. Green rises on allow. Rose falls on deny, including an implicit deny where no grant and no role baseline apply. Bars under the line are the same steps.</p>
               {member.id !== selfId && (
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   {held(perms, 'user:role:update') && (
@@ -182,7 +351,7 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
               <li className="relative pb-8">
                 <span className="absolute top-1.5 -left-[29px] h-2.5 w-2.5 rounded-full bg-[#39FF14]" />
                 <p className={kicker}>Grants · {mineGrants.length}</p>
-                <p className="mt-2 w-full text-base leading-7 text-[#7f8c82]">A grant on this person overrides the role. A deny still wins over every allow.</p>
+                <p className="mt-2 w-full text-justify text-base leading-7 text-[#7f8c82]">A grant on this person overrides the role. A deny still wins over every allow.</p>
                 <ul className="mt-3 space-y-2 text-sm">
                   {mineGrants.map((grant) => (
                     <li key={grant.id} className={grant.effect === 'deny' ? 'text-[#ff8b96]' : 'text-[#39FF14]'}>{grant.effect} · {(grant.permissions || []).join(', ') || 'grant'}</li>
@@ -193,7 +362,7 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
               <li className="relative pb-8">
                 <span className="absolute top-1.5 -left-[29px] h-2.5 w-2.5 rounded-full bg-[#39FF14]" />
                 <p className={kicker}>Sessions · {mineSessions.length}</p>
-                <p className="mt-2 w-full text-base leading-7 text-[#7f8c82]">Each session is a record of view, control, terminal, or file transfer. None of them open the other computer.</p>
+                <p className="mt-2 w-full text-justify text-base leading-7 text-[#7f8c82]">Each session is a record of view, control, terminal, or file transfer. None of them open the other computer.</p>
                 <ul className="mt-3 space-y-2 text-sm text-[#7f8c82]">
                   {mineSessions.slice(0, 6).map((row) => (
                     <li key={row.id}>{row.mode} · {row.state}</li>
@@ -204,7 +373,7 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
               <li className="relative">
                 <span className="absolute top-1.5 -left-[29px] h-2.5 w-2.5 rounded-full bg-[#39FF14]" />
                 <p className={kicker}>Audit · {mineEvents.length}</p>
-                <p className="mt-2 w-full text-base leading-7 text-[#7f8c82]">These are the newest events in which this person is the actor.</p>
+                <p className="mt-2 w-full text-justify text-base leading-7 text-[#7f8c82]">These are the newest events in which this person is the actor.</p>
                 <ul className="mt-3 space-y-2 text-sm text-[#7f8c82]">
                   {mineEvents.slice(0, 6).map((event) => (
                     <li key={event.id}>{event.action} · {event.result}</li>
@@ -214,7 +383,6 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
               </li>
             </ol>
           )}
-        </div>
       </div>
     </section>
   );

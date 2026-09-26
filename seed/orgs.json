@@ -27,7 +27,17 @@
     { "id": "usr_acme_owner",    "email": "owner@acme.test",     "name": "Acme Owner" },
     { "id": "usr_acme_admin",    "email": "admin@acme.test",     "name": "Acme Admin" },
     { "id": "usr_acme_viewer",   "email": "viewer@acme.test",    "name": "Acme Viewer" },
-    { "id": "usr_globex_owner",  "email": "owner@globex.test",   "name": "Globex Owner" }
+    { "id": "usr_globex_owner",  "email": "owner@globex.test",   "name": "Globex Owner" },
+    { "id": "usr_globex_mira",   "email": "mira@globex.test",    "name": "Mira Chen" },
+    { "id": "usr_globex_jules",  "email": "jules@globex.test",   "name": "Jules Okonkwo" },
+    { "id": "usr_globex_priya",  "email": "priya@globex.test",   "name": "Priya Shah" },
+    { "id": "usr_globex_noah",   "email": "noah@globex.test",    "name": "Noah Berg" },
+    { "id": "usr_globex_lea",    "email": "lea@globex.test",     "name": "Lea Costa" },
+    { "id": "usr_acme_kenji",    "email": "kenji@acme.test",     "name": "Kenji Sato" },
+    { "id": "usr_acme_amira",    "email": "amira@acme.test",     "name": "Amira Hassan" },
+    { "id": "usr_acme_chris",    "email": "chris@acme.test",     "name": "Chris Nolan" },
+    { "id": "usr_acme_riley",    "email": "riley@acme.test",     "name": "Riley Quinn" },
+    { "id": "usr_acme_omar",     "email": "omar@acme.test",      "name": "Omar Farouk" }
   ],
 
   "_membershipsNote": [
@@ -49,7 +59,17 @@
     { "orgId": "org_acme",   "userId": "usr_acme_owner",   "role": "owner",    "status": "active", "joinedAt": "-120d" },
     { "orgId": "org_acme",   "userId": "usr_acme_admin",   "role": "admin",    "status": "active", "joinedAt": "-110d" },
     { "orgId": "org_acme",   "userId": "usr_acme_viewer",  "role": "viewer",   "status": "active", "joinedAt": "-70d" },
-    { "orgId": "org_globex", "userId": "usr_globex_owner", "role": "owner",    "status": "active", "joinedAt": "-100d" }
+    { "orgId": "org_globex", "userId": "usr_globex_owner", "role": "owner",    "status": "active",    "joinedAt": "-100d" },
+    { "orgId": "org_globex", "userId": "usr_globex_mira",  "role": "operator", "status": "active",    "joinedAt": "-40d" },
+    { "orgId": "org_globex", "userId": "usr_globex_jules", "role": "admin",    "status": "active",    "joinedAt": "-55d" },
+    { "orgId": "org_globex", "userId": "usr_globex_priya", "role": "viewer",   "status": "suspended", "joinedAt": "-20d" },
+    { "orgId": "org_globex", "userId": "usr_globex_noah",  "role": "auditor",  "status": "active",    "joinedAt": "-33d" },
+    { "orgId": "org_globex", "userId": "usr_globex_lea",   "role": "operator", "status": "active",    "joinedAt": "-12d" },
+    { "orgId": "org_acme",   "userId": "usr_acme_kenji",   "role": "operator", "status": "active",    "joinedAt": "-28d" },
+    { "orgId": "org_acme",   "userId": "usr_acme_amira",   "role": "auditor",  "status": "active",    "joinedAt": "-36d" },
+    { "orgId": "org_acme",   "userId": "usr_acme_chris",   "role": "viewer",   "status": "suspended", "joinedAt": "-15d" },
+    { "orgId": "org_acme",   "userId": "usr_acme_riley",   "role": "admin",    "status": "active",    "joinedAt": "-48d" },
+    { "orgId": "org_acme",   "userId": "usr_acme_omar",    "role": "operator", "status": "active",    "joinedAt": "-9d" }
   ],
 
   "devices": [
@@ -111,6 +131,51 @@
       "permissions": ["device:control"],
       "createdBy": "usr_globex_owner",
       "_demonstrates": "D6 — Dana is a viewer in Globex, so Control is locked on every row EXCEPT this one. The clearest single demonstration that authorization is device-scoped rather than org-level."
+    },
+    {
+      "id": "grt_lea_deny_terminal",
+      "orgId": "org_globex",
+      "userId": "usr_globex_lea",
+      "deviceId": null,
+      "effect": "deny",
+      "permissions": ["device:terminal"],
+      "createdBy": "usr_globex_owner"
+    },
+    {
+      "id": "grt_noah_desk_control",
+      "orgId": "org_globex",
+      "userId": "usr_globex_noah",
+      "deviceId": "dev_globex_desk_01",
+      "effect": "allow",
+      "permissions": ["device:control"],
+      "createdBy": "usr_globex_owner"
+    },
+    {
+      "id": "grt_priya_deny_list",
+      "orgId": "org_globex",
+      "userId": "usr_globex_priya",
+      "deviceId": null,
+      "effect": "deny",
+      "permissions": ["device:list"],
+      "createdBy": "usr_globex_owner"
+    },
+    {
+      "id": "grt_jules_file",
+      "orgId": "org_globex",
+      "userId": "usr_globex_jules",
+      "deviceId": null,
+      "effect": "allow",
+      "permissions": ["device:file_transfer"],
+      "createdBy": "usr_globex_owner"
+    },
+    {
+      "id": "grt_mira_deny_file",
+      "orgId": "org_globex",
+      "userId": "usr_globex_mira",
+      "deviceId": "dev_globex_kiosk_02",
+      "effect": "deny",
+      "permissions": ["device:file_transfer"],
+      "createdBy": "usr_globex_owner"
     }
   ],
 
@@ -148,6 +213,104 @@
         "snapshotAt": "-3h"
       },
       "_demonstrates": "A grant-authorized session in the history, so the session list and the audit log are not empty on first boot."
+    },
+    {
+      "id": "ses_mira_desk_view",
+      "orgId": "org_globex",
+      "userId": "usr_globex_mira",
+      "deviceId": "dev_globex_desk_01",
+      "mode": "view",
+      "state": "active",
+      "startedAt": "-18m",
+      "expiresAt": "+42m",
+      "authorizedBy": { "role": "operator", "grantIds": [], "snapshotAt": "-18m" }
+    },
+    {
+      "id": "ses_jules_desk_view",
+      "orgId": "org_globex",
+      "userId": "usr_globex_jules",
+      "deviceId": "dev_globex_desk_01",
+      "mode": "view",
+      "state": "ended",
+      "startedAt": "-6h",
+      "expiresAt": "-5h",
+      "endedAt": "-5h10m",
+      "endReason": "user_stopped",
+      "authorizedBy": { "role": "admin", "grantIds": [], "snapshotAt": "-6h" }
+    },
+    {
+      "id": "ses_lea_kiosk_control",
+      "orgId": "org_globex",
+      "userId": "usr_globex_lea",
+      "deviceId": "dev_globex_kiosk_02",
+      "mode": "control",
+      "state": "active",
+      "startedAt": "-12m",
+      "expiresAt": "+48m",
+      "authorizedBy": { "role": "operator", "grantIds": [], "snapshotAt": "-12m" }
+    },
+    {
+      "id": "ses_noah_kiosk_view",
+      "orgId": "org_globex",
+      "userId": "usr_globex_noah",
+      "deviceId": "dev_globex_kiosk_02",
+      "mode": "view",
+      "state": "ended",
+      "startedAt": "-1d",
+      "expiresAt": "-23h",
+      "endedAt": "-23h",
+      "endReason": "session_expired",
+      "authorizedBy": { "role": "auditor", "grantIds": [], "snapshotAt": "-1d" }
+    },
+    {
+      "id": "ses_kenji_win_view",
+      "orgId": "org_acme",
+      "userId": "usr_acme_kenji",
+      "deviceId": "dev_lab_win_01",
+      "mode": "view",
+      "state": "ended",
+      "startedAt": "-8h",
+      "expiresAt": "-7h",
+      "endedAt": "-7h20m",
+      "endReason": "user_stopped",
+      "authorizedBy": { "role": "operator", "grantIds": [], "snapshotAt": "-8h" }
+    },
+    {
+      "id": "ses_amira_mac_view",
+      "orgId": "org_acme",
+      "userId": "usr_acme_amira",
+      "deviceId": "dev_lab_mac_01",
+      "mode": "view",
+      "state": "ended",
+      "startedAt": "-4h",
+      "expiresAt": "-3h",
+      "endedAt": "-3h30m",
+      "endReason": "user_stopped",
+      "authorizedBy": { "role": "auditor", "grantIds": [], "snapshotAt": "-4h" }
+    },
+    {
+      "id": "ses_omar_android_view",
+      "orgId": "org_acme",
+      "userId": "usr_acme_omar",
+      "deviceId": "dev_qa_android_01",
+      "mode": "view",
+      "state": "active",
+      "startedAt": "-9m",
+      "expiresAt": "+51m",
+      "authorizedBy": { "role": "operator", "grantIds": [], "snapshotAt": "-9m" }
+    },
+    {
+      "id": "ses_riley_mac_view",
+      "orgId": "org_acme",
+      "userId": "usr_acme_riley",
+      "deviceId": "dev_lab_mac_01",
+      "mode": "view",
+      "state": "ended",
+      "startedAt": "-2d",
+      "expiresAt": "-47h",
+      "endedAt": "-47h",
+      "endReason": "admin_terminated",
+      "authorizedBy": { "role": "admin", "grantIds": [], "snapshotAt": "-2d" }
     }
   ],
 
@@ -207,6 +370,19 @@
       "result": "allow",
       "reasonCode": null,
       "at": "-40m"
-    }
+    },
+    { "id": "aud_006", "orgId": "org_globex", "actorId": "usr_globex_mira", "action": "session.start", "targetType": "device", "targetId": "dev_globex_desk_01", "result": "allow", "reasonCode": null, "at": "-18m" },
+    { "id": "aud_007", "orgId": "org_globex", "actorId": "usr_globex_lea", "action": "session.start", "targetType": "device", "targetId": "dev_globex_kiosk_02", "result": "allow", "reasonCode": null, "at": "-12m" },
+    { "id": "aud_008", "orgId": "org_globex", "actorId": "usr_globex_lea", "action": "device.terminal", "targetType": "device", "targetId": "dev_globex_kiosk_02", "result": "deny", "reasonCode": "explicit_deny", "at": "-11m" },
+    { "id": "aud_009", "orgId": "org_globex", "actorId": "usr_globex_noah", "action": "audit.read", "targetType": "org", "targetId": "org_globex", "result": "allow", "reasonCode": null, "at": "-2h" },
+    { "id": "aud_010", "orgId": "org_globex", "actorId": "usr_globex_priya", "action": "device.list", "targetType": "org", "targetId": "org_globex", "result": "deny", "reasonCode": "suspended", "at": "-90m" },
+    { "id": "aud_011", "orgId": "org_globex", "actorId": "usr_globex_jules", "action": "member.list", "targetType": "org", "targetId": "org_globex", "result": "allow", "reasonCode": null, "at": "-3h" },
+    { "id": "aud_012", "orgId": "org_globex", "actorId": "usr_globex_owner", "action": "grant.create", "targetType": "grant", "targetId": "grt_noah_desk_control", "result": "allow", "reasonCode": null, "at": "-5h" },
+    { "id": "aud_013", "orgId": "org_acme", "actorId": "usr_acme_kenji", "action": "session.start", "targetType": "device", "targetId": "dev_lab_win_01", "result": "allow", "reasonCode": null, "at": "-8h" },
+    { "id": "aud_014", "orgId": "org_acme", "actorId": "usr_acme_amira", "action": "audit.read", "targetType": "org", "targetId": "org_acme", "result": "allow", "reasonCode": null, "at": "-4h" },
+    { "id": "aud_015", "orgId": "org_acme", "actorId": "usr_acme_chris", "action": "device.list", "targetType": "org", "targetId": "org_acme", "result": "deny", "reasonCode": "suspended", "at": "-70m" },
+    { "id": "aud_016", "orgId": "org_acme", "actorId": "usr_acme_omar", "action": "session.start", "targetType": "device", "targetId": "dev_qa_android_01", "result": "allow", "reasonCode": null, "at": "-9m" },
+    { "id": "aud_017", "orgId": "org_acme", "actorId": "usr_acme_riley", "action": "session.terminate", "targetType": "session", "targetId": "ses_riley_mac_view", "result": "allow", "reasonCode": null, "at": "-2d" },
+    { "id": "aud_018", "orgId": "org_acme", "actorId": "usr_sam", "action": "device.terminal", "targetType": "device", "targetId": "dev_lab_win_01", "result": "deny", "reasonCode": "explicit_deny", "at": "-50m" }
   ]
 }
