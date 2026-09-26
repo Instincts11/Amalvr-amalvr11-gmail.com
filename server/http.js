@@ -39,12 +39,19 @@ export function normalizeTs(value, field) {
   return d.toISOString();
 }
 
+const SECURITY_HEADERS = {
+  'x-content-type-options': 'nosniff',
+  'referrer-policy': 'no-referrer',
+  'x-frame-options': 'DENY',
+};
+
 export function send(res, status, body) {
   const payload = body === undefined ? '' : JSON.stringify(body);
   res.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
     'content-length': Buffer.byteLength(payload),
     'cache-control': 'no-store',
+    ...SECURITY_HEADERS,
   });
   res.end(payload);
 }

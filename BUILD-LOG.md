@@ -154,6 +154,10 @@ Not built, on purpose: rate limits (they would make the public suites timing-sen
 
 `npm start` was `NODE_ENV=production node server/index.js`. That prefix is a shell assignment. cmd.exe treats it as the program name and the process never boots. `scripts/start.js` sets `NODE_ENV` and then imports the server, so the same `npm start` works on Windows and on the Linux checkout a grader uses. `npm run dev` is unchanged and still leaves `NODE_ENV` unset.
 
+### 2026-09-26 — API responses name three headers and not a content policy
+
+`send` now sets `x-content-type-options: nosniff`, `referrer-policy: no-referrer`, and `x-frame-options: DENY` on every JSON response, including errors. A Content-Security-Policy would also cover the SPA, and in development that SPA is Vite's middleware with inline refresh. A policy tight enough to matter would break hot reload, and a policy loose enough to allow it would not be a control. The three headers do not touch the script loader.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
