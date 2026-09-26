@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { api, explain, refresh, setAccessToken } from './api.js';
 import { Action, held } from './action.jsx';
 import { LoginForm } from './login.jsx';
+import { clearedOrgLists } from './org-state.js';
 import { Audit, Sessions } from './activity.jsx';
 import { Devices } from './devices.jsx';
 import { Grants } from './grants.jsx';
@@ -101,12 +102,18 @@ function Console({ session, setSession }) {
   const perms = session.permissions;
   const org = session.org;
 
+  function applyClearedLists() {
+    const blank = clearedOrgLists();
+    setDevices(blank.devices);
+    setDevicesReady(false);
+    setGrants(blank.grants);
+    setMembers(blank.members);
+    setSessions(blank.sessions);
+    setEvents(blank.events);
+  }
+
   useEffect(() => {
-    setDevices([]);
-    setGrants([]);
-    setMembers([]);
-    setSessions([]);
-    setEvents([]);
+    applyClearedLists();
     setGrantOpen(false);
     setInviteOpen(false);
     setNotice('');
@@ -144,12 +151,7 @@ function Console({ session, setSession }) {
     if (orgId === org.id) return;
     setNotice('');
     const next = await api('POST', '/v1/auth/token', { orgId });
-    setDevices([]);
-    setDevicesReady(false);
-    setGrants([]);
-    setMembers([]);
-    setSessions([]);
-    setEvents([]);
+    applyClearedLists();
     setAccessToken(next.token);
     setSession(next);
   }
@@ -161,12 +163,7 @@ function Console({ session, setSession }) {
     try {
       const created = await api('POST', '/v1/orgs', { name: name.trim() });
       const next = await api('POST', '/v1/auth/token', { orgId: created.id });
-      setDevices([]);
-      setDevicesReady(false);
-      setGrants([]);
-      setMembers([]);
-      setSessions([]);
-      setEvents([]);
+      applyClearedLists();
       setAccessToken(next.token);
       setSession(next);
     } catch (err) {

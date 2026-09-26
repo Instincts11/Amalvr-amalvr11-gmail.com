@@ -5,6 +5,7 @@
 
 import { spawn, execFileSync } from 'node:child_process';
 import { rmSync, existsSync } from 'node:fs';
+import { clearedOrgLists } from '../web/org-state.js';
 
 const PORT = 8126;
 const ORIGIN = `http://localhost:${PORT}`;
@@ -52,6 +53,14 @@ async function ready() {
 }
 
 try {
+  const blank = clearedOrgLists();
+  check(
+    'org switch clears five lists',
+    Object.keys(blank).sort(),
+    ['devices', 'events', 'grants', 'members', 'sessions'],
+  );
+  check('cleared lists are empty', Object.values(blank).map((list) => list.length), [0, 0, 0, 0, 0]);
+
   const health = await ready();
   const healthBody = await health.json();
   check('health is ok', healthBody, { ok: true });

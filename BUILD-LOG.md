@@ -234,6 +234,10 @@ Health stays off `/v1`. A content type is required only once a body byte arrives
 
 `npm run check` runs JWT, permissions, personalisation, the API contract, and `check-ops.js`. Playwright stays `npm test` because it needs a browser install the node suites do not. `&&` stops on the first failure so a red JWT check does not leave a server up for the API script.
 
+### 2026-09-26 — the five lists were already cleared, in three copies
+
+`switchOrg` and `createOrg` already emptied devices, grants, members, sessions, and audit in the same update as `setSession`. The effect on `org.id` did the same and forgot `devicesReady`, so a new org could flash `devices-empty` before its fetch. Those copies are now `clearedOrgLists()` in `web/org-state.js`. `check-ops.js` asserts the five names and that each array is empty. Dropping `sessions` from the helper fails that check and stops clearing sessions in the console.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
