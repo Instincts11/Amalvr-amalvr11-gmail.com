@@ -146,10 +146,20 @@ D6 says the question always names a device, then says navigation does not. I tre
 
 ---
 
+### The charts count the lists, and the fixture only fills them
+
+**What I chose:** `web/charts.jsx` draws from the arrays the console already holds. `tapePoints` (`web/person.jsx`) walks `effective.permissions`. Extra fixture rows are people on both orgs and grants on Globex only. Acme's grant list is the original three.
+**Why:** After `5679bd0` the People page still requested grants only for the grants view, so the grant card said "Nothing recorded for this chart" while `seed/orgs.json` contained `grt_dana_control_one_device`. `web/console.jsx` fetches grants, sessions, and audit when `view === 'people'`. `tests/ui.spec.js` "the grants view lists seeded grants" asserts `grant-row` count 3 and deny count 2. A new Acme grant fails that. `npx playwright test` with the Globex-only grants: 25 passed. View on `dev_lab_win_01` as Dana returned session `ses_e04177049a11428d`; `startMode` prints that id (`web/devices.jsx`).
+**What I rejected:** A series built in the client so an empty org still looks occupied. The empty sentence is the honest chart. Also rejected: calling a model to narrate the figure. That needs an API key in the SPA or in the JWT payload, and neither place may hold a secret. The figure would also stop being checkable against `members` and `grants`.
+**What would change my mind:** A hidden org, with none of these seed ids, where the charts are required to show a shaped series anyway. They should show the empty sentence. Or a test that requires Dana's Acme grant count to exceed 3 before she creates one.
+
+---
+
 ## Deliberately not built
 
 - **Rate limiting, email delivery, password reset.** The starter lists them as out of scope. A limit low enough to matter would fail `check-api.js` and the UI suite, which log in on every test.
-- **Real remote access.** Control, terminal, and file transfer start or record a session. `POST .../file-transfer` returns `movedBytes: false` (`server/routes/devices.js`). No shell, no input injection, no capture.
+- **Real remote access.** Control, terminal, and file transfer start or record a session. `POST .../file-transfer` returns `movedBytes: false` (`server/routes/devices.js`). No shell, no input injection, no capture. `startMode` (`web/devices.jsx`) shows the session id and says the other computer was not contacted.
+- **A model API.** The charts are the lists. A key in the client bundle or in the access token would be a secret in the place `BRIEF.md` says not to put one, and the figure would no longer match `members` and `grants`.
 - **A permission cache.** Measured above. The failure mode is a stale allow, not a slow read.
 - **Device and member pagination.** Audit pagination is the contract (`limit` 1..200). The device list is one indexed select plus four resolution queries. Adding pages before that showed up in a measurement would be a second API for the console to get wrong.
 - **Decommission as its own `end_reason`.** `sessions.end_reason` is a `CHECK` list. There is no `decommissioned`. Transfer and decommission both write `device_transferred` (`server/routes/devices.js`). `superseded` is left unused; it would mean a session replaced by another session, which exclusivity already forbids for `control` and `terminal`.

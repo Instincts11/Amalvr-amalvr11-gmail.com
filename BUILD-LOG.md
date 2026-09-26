@@ -242,6 +242,24 @@ Health stays off `/v1`. A content type is required only once a body byte arrives
 
 `README.md` now leads with `npm install`, `npm run db:reset`, `npm run dev`, and http://localhost:8080. The starter's own run block is still under it, including the comments about the fixture and the port. Nothing in the contract section was rewritten.
 
+## Phase 12 — the console counts what the server returned
+
+### 2026-09-26 — a bigger ring was still the same two numbers
+
+Expected the person page to need a larger ring. The ring only restates the allow count and the deny count. `effective.permissions` is already an ordered set of steps. `tapePoints` in `web/person.jsx` walks that object, `+1` for allow and `-1` for deny, so one deny is a dip in the line. Moving the pointer snaps to the nearest key and reads its effect. There is no second request and no series stored in the page.
+
+### 2026-09-26 — the grant chart said nothing while the database had grants
+
+The People page drew from `members` only. Grants, sessions, and audit were fetched for their own views, so the grant card rendered "Nothing recorded for this chart" on Globex, which already had `grt_dana_control_one_device`. `web/console.jsx` now requests those three lists when `view === 'people'`. `tally` in `web/people.jsx` counts the arrays. `web/charts.jsx` does not contain an org id or a user id.
+
+### 2026-09-26 — more people, and not more Acme grants
+
+Three Globex memberships make a donut with no shape. `5679bd0` adds ten users and their memberships in `seed/orgs.json`, plus Globex grants (`grt_lea_deny_terminal` and the four after it), sessions, and audit rows. Acme's grant list was left at the original three. `tests/ui.spec.js` "the grants view lists seeded grants" requires `[data-testid="grant-row"]` count 3 and deny count 2 for `dana@example.test`. `npx playwright test` after that seed change: 25 passed.
+
+### 2026-09-26 — View already wrote a session, and the page stayed quiet
+
+`start-view` POSTed `/v1/orgs/:org/sessions` and then cleared the notice. A success looked like a dead button. `startMode` in `web/devices.jsx` prints the id the server returned, on the row (`device-action-result`) and in `role="alert"`. File transfer still does not move bytes; the sentence says so. As Dana, View on `dev_lab_win_01` returned an active session id (`ses_e04177049a11428d` in that database). Control and terminal use the same function. A device already held comes back as the error `run` already shows.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
