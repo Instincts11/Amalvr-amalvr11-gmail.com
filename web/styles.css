@@ -155,6 +155,12 @@ input, select {
   letter-spacing: -0.03em;
 }
 
+.filter {
+  width: 220px;
+  margin: 0;
+  padding: 6px 10px;
+}
+
 .toolbar, .row-actions, .inline {
   display: flex;
   flex-wrap: wrap;

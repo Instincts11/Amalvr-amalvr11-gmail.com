@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { api } from './api.js';
 import { Action } from './action.jsx';
 
 export function Devices({ orgId, devices, devicesReady, perms, setDevices, setNotice, setView, run }) {
+  const [query, setQuery] = useState('');
+  useEffect(() => { setQuery(''); }, [orgId]);
+  const needle = query.trim().toLowerCase();
+  const shown = needle
+    ? devices.filter((device) => `${device.name} ${device.kind}`.toLowerCase().includes(needle))
+    : devices;
+
   return (
     <section>
       <div className="toolbar">
         <h2>Devices</h2>
+        <input
+          className="filter"
+          aria-label="Filter devices"
+          placeholder="Filter by name or kind"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
         <Action perms={perms} permission="device:provision" testid="add-device" onClick={() => run(async () => {
           const name = window.prompt('Device name');
           if (!name) return;
@@ -18,13 +32,14 @@ export function Devices({ orgId, devices, devicesReady, perms, setDevices, setNo
         })}>Add device</Action>
       </div>
       {devicesReady && devices.length === 0 && <p className="empty" data-testid="devices-empty">No devices in this organization yet.</p>}
-      {devices.length > 0 && (
+      {devices.length > 0 && shown.length === 0 && <p className="empty">No devices match that filter.</p>}
+      {shown.length > 0 && (
         <table>
           <thead>
             <tr><th>Name</th><th>Kind</th><th>State</th><th>Actions</th></tr>
           </thead>
           <tbody>
-            {devices.map((device) => (
+            {shown.map((device) => (
               <tr key={device.id} data-testid="device-row" data-device-id={device.id}>
                 <td>{device.name}</td>
                 <td className="mono">{device.kind}</td>
