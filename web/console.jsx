@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { api, explain, refresh, setAccessToken } from './api.js';
 import { Action, held } from './action.jsx';
 import { LoginForm } from './login.jsx';
+import { Audit, Sessions } from './activity.jsx';
 import { Devices } from './devices.jsx';
 import { Grants } from './grants.jsx';
 import { People } from './people.jsx';
@@ -262,58 +263,17 @@ function Console({ session, setSession }) {
           />
         )}
         {view === 'sessions' && (
-          <section>
-            <div className="toolbar">
-              <h2>Sessions</h2>
-              <Action perms={perms} permission="session:start" testid="new-session" onClick={() => setView('devices')}>Start from a device</Action>
-            </div>
-            <p className="muted">A live session keeps the authority it started with. Hiding a button does not end it.</p>
-            <table>
-              <thead><tr><th>Device</th><th>Mode</th><th>State</th><th></th></tr></thead>
-              <tbody>
-                {sessions.map((row) => (
-                  <tr key={row.id} data-testid="session-row">
-                    <td className="mono">{row.device_id}</td>
-                    <td>{row.mode}</td>
-                    <td>{row.state}{row.end_reason ? ` · ${row.end_reason}` : ''}</td>
-                    <td>
-                      {row.state === 'active' && (row.user_id === session.user.id || held(perms, 'session:terminate')) && (
-                        <button
-                          type="button"
-                          data-testid="stop-session"
-                          {...(held(perms, 'session:terminate') && row.user_id !== session.user.id ? { 'data-permission': 'session:terminate', 'data-state': 'unlocked' } : {})}
-                          onClick={() => run(async () => {
-                            await api('DELETE', `/v1/sessions/${row.id}`);
-                            const body = await api('GET', `/v1/orgs/${org.id}/sessions`);
-                            setSessions(body.sessions);
-                          })}
-                        >Stop</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
+          <Sessions
+            orgId={org.id}
+            sessions={sessions}
+            perms={perms}
+            selfId={session.user.id}
+            setSessions={setSessions}
+            setView={setView}
+            run={run}
+          />
         )}
-        {view === 'audit' && (
-          <section>
-            <h2>Audit</h2>
-            <table>
-              <thead><tr><th>When</th><th>Action</th><th>Result</th><th>Reason</th></tr></thead>
-              <tbody>
-                {events.map((event) => (
-                  <tr key={event.id} data-testid="audit-row">
-                    <td className="mono">{event.at}</td>
-                    <td>{event.action}</td>
-                    <td>{event.result}</td>
-                    <td>{event.reason_code ?? ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-        )}
+        {view === 'audit' && <Audit events={events} />}
         {view === 'admin' && (
           <section>
             <h2>Admin</h2>

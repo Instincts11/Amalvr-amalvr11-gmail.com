@@ -200,6 +200,10 @@ The content-type rejection called `req.destroy()`. On Windows that resets the so
 
 `Devices` is `web/devices.jsx`. Each row still reads `device.permissions`, not the caller's org-level set. That is why a control button can be absent on one device and present on the next. `device-row`, `data-device-id`, `devices-empty`, and the action test ids are the same. File transfer still only records authorisation.
 
+### 2026-09-26 — stopping your own session is not session:terminate
+
+Sessions and audit are `web/activity.jsx`. A stop button on your own active row is still rendered without `data-permission="session:terminate"`. Someone else's row gets that attribute only when the server allowed `session:terminate`. `session-row` and `audit-row` are unchanged. The note that a live session keeps its starting authority stayed on the sessions view.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
