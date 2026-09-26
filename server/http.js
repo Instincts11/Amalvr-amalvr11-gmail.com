@@ -104,14 +104,12 @@ export function readJson(req) {
         sawBody = true;
         if (!isJsonContentType(req)) {
           fail(badRequest('content-type must be application/json'));
-          req.destroy();
           return;
         }
       }
       size += chunk.length;
       if (size > MAX_BODY) {
         fail(badRequest('request body too large'));
-        req.destroy();
         return;
       }
       chunks.push(chunk);

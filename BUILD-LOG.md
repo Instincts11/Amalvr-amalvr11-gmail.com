@@ -174,6 +174,10 @@ Logout is `POST /v1/auth/logout` with no body. Requiring `application/json` on e
 
 One line per `/v1` request: method, path, status, request id, milliseconds. No authorization header, no cookie, no body. The invite peek and accept routes put the raw token in the path, and that token is the secret. Those lines are written as `/v1/invites/:token` so a log file is not a second copy of the invite.
 
+### 2026-09-26 — destroying the request ate the 400
+
+The content-type rejection called `req.destroy()`. On Windows that resets the socket before `sendError` writes the status, so the client sees a failed fetch instead of `400 VALIDATION`. The body is now discarded and the stream is allowed to end. The 400 is the response. `req.destroy()` stays unused on this path.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
