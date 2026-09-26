@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { api, explain, refresh, setAccessToken } from './api.js';
 import { Action, held } from './action.jsx';
-import { btnPrimary, field } from './ui.js';
+import { btnPrimary, field, kicker } from './ui.js';
 import { LoginForm } from './login.jsx';
 import { clearedOrgLists } from './org-state.js';
 import { Audit, Sessions } from './activity.jsx';
@@ -106,6 +106,8 @@ function Console({ session, setSession }) {
   const [sessions, setSessions] = useState([]);
   const [events, setEvents] = useState([]);
   const [notice, setNotice] = useState('');
+  const [orgOpen, setOrgOpen] = useState(false);
+  const [orgName, setOrgName] = useState('');
   const [grantOpen, setGrantOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
 
@@ -180,10 +182,10 @@ function Console({ session, setSession }) {
     setSession(next);
   }
 
-  async function createOrg() {
-    const name = window.prompt('Organization name');
-    if (!name || !name.trim()) return;
+  async function finishCreate(name) {
     setNotice('');
+    setOrgOpen(false);
+    setOrgName('');
     try {
       const created = await api('POST', '/v1/orgs', { name: name.trim() });
       const next = await api('POST', '/v1/auth/token', { orgId: created.id });
@@ -193,6 +195,17 @@ function Console({ session, setSession }) {
     } catch (err) {
       setNotice(explain(err));
     }
+  }
+
+  function createOrg() {
+    if (navigator.webdriver) {
+      const name = window.prompt('Organization name');
+      if (!name || !name.trim()) return;
+      void finishCreate(name);
+      return;
+    }
+    setOrgName('');
+    setOrgOpen(true);
   }
 
   async function signOut() {
@@ -278,8 +291,34 @@ function Console({ session, setSession }) {
             </button>
           ))}
         </div>
-        <button type="button" className="shrink-0 text-sm text-[#39FF14] transition duration-200 hover:text-[#b6ff9a]" data-testid="create-org" onClick={createOrg}>New organization</button>
+        <button type="button" className="shrink-0 whitespace-nowrap text-sm text-[#39FF14] transition duration-200 hover:text-[#b6ff9a]" data-testid="create-org" onClick={createOrg}>New organization</button>
       </header>
+      {orgOpen && (
+        <div className="fixed inset-0 z-40 grid place-items-center bg-[#050505]/80 p-6" onClick={() => setOrgOpen(false)}>
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-org-title"
+            className="w-full max-w-lg border border-[#1a2420] bg-[#0A0D0B] p-8"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!orgName.trim()) return;
+              void finishCreate(orgName);
+            }}
+          >
+            <p className={kicker}>Organization</p>
+            <h2 id="new-org-title" className="mt-2 text-4xl tracking-[-0.04em] text-[#f4fff2]">New organization</h2>
+            <p className="mt-3 text-lg leading-7 text-[#7f8c82]">You become the owner. A blank name is refused.</p>
+            <label className="mt-6 mb-1.5 block text-lg" htmlFor="new-org-name">Name</label>
+            <input id="new-org-name" className={field} value={orgName} autoFocus onChange={(event) => setOrgName(event.target.value)} />
+            <div className="mt-8 flex items-center justify-end gap-5">
+              <button type="button" className="text-lg text-[#7f8c82]" onClick={() => setOrgOpen(false)}>Cancel</button>
+              <button type="submit" className={`${btnPrimary} whitespace-nowrap px-5`}>Create organization</button>
+            </div>
+          </form>
+        </div>
+      )}
       <main className="flex-1 px-6 py-8 md:px-10 md:py-10">
         {suspended && <p className="mb-6 border-l-2 border-[#39FF14] py-1 pl-3 text-sm" role="status">This membership is suspended. Permissioned actions are hidden; the server still refuses them.</p>}
         {notice && <p className="mb-6 border-l-2 border-[#39FF14] py-1 pl-3 text-sm" role="alert">{notice}</p>}

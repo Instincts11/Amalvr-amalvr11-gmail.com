@@ -27,8 +27,8 @@ export function Sessions({ orgId, sessions, perms, selfId, setSessions, setView,
   const paged = usePaged(filtered, 8, `${orgId}:${needle}`);
   return (
     <section>
-      <header className="mb-5 flex items-end justify-between gap-4">
-        <div>
+      <header className="mb-5 flex items-start justify-between gap-6">
+        <div className="min-w-0 flex-1">
           <h2 className="text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Sessions</h2>
           <div className="mt-3 w-full space-y-3 text-xl leading-8 text-[#7f8c82]">
             <p>A live session keeps the authority it started with. Hiding a button does not end it.</p>
@@ -36,7 +36,7 @@ export function Sessions({ orgId, sessions, perms, selfId, setSessions, setView,
             <p>Control and terminal cannot both be active on one device. View can sit beside either. Stop closes that session only.</p>
           </div>
         </div>
-        <Action className={btnPrimary} perms={perms} permission="session:start" testid="new-session" onClick={() => setView('devices')}>Start from a device</Action>
+        <Action className={`${btnPrimary} shrink-0 self-start whitespace-nowrap px-5 text-center leading-none`} perms={perms} permission="session:start" testid="new-session" onClick={() => setView('devices')}>Start from a device</Action>
       </header>
       <input
         className="mb-3 w-full max-w-xs border-0 bg-transparent py-1 text-sm outline-none placeholder:text-[#7f8c82]"

@@ -21,6 +21,22 @@ function Block({ pageKey, title, open, children }) {
   );
 }
 
+function Meter({ label, value, max, hint }) {
+  const width = max > 0 ? Math.round((value / max) * 100) : 0;
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-4">
+        <span className="text-lg text-[#f4fff2]">{label}</span>
+        <span className="text-lg text-[#39FF14]">{value}</span>
+      </div>
+      <div className="mt-2 h-1.5 bg-[#1a2420]">
+        <div className="h-1.5 bg-[#39FF14]" style={{ width: `${width}%` }} />
+      </div>
+      <p className="mt-2 text-base leading-6 text-[#7f8c82]">{hint}</p>
+    </div>
+  );
+}
+
 function PagedList({ items, resetKey, label, empty, textOf, render }) {
   const [query, setQuery] = useState('');
   const needle = query.trim().toLowerCase();
@@ -82,6 +98,24 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
               <p className={`mt-2 ${kicker}`}>{stat.label}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="mt-6 border border-[#1a2420] px-5 py-5">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className={kicker}>Pressure</p>
+            <h3 className="mt-1 text-2xl tracking-[-0.03em] text-[#f4fff2]">What is held back</h3>
+          </div>
+          <p className="text-lg text-[#39FF14]">0 users rate-limited</p>
+        </div>
+        <p className="mt-3 text-lg leading-7 text-[#7f8c82]">No request throttle is installed, so that count stays at zero. The bars are the limits this organization does enforce.</p>
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          {showDevices && <Meter label="Quiet devices" value={devices.length - devices.filter((device) => device.online).length} max={devices.length} hint="Machines with no live mark." />}
+          {showPeople && <Meter label="Suspended members" value={members.filter((member) => member.status === 'suspended').length} max={members.length} hint="A suspended membership hides actions. The server still refuses them." />}
+          {showPeople && <Meter label="Deny grants" value={grants.filter((grant) => grant.effect === 'deny').length} max={grants.length} hint="A deny beats every allow." />}
+          {showSessions && <Meter label="Exclusive sessions" value={sessions.filter((row) => row.state === 'active' && (row.mode === 'control' || row.mode === 'terminal')).length} max={Math.max(sessions.length, 1)} hint="Control and terminal each occupy one device." />}
+          {showAudit && <Meter label="Audit refusals" value={events.filter((event) => event.result === 'deny').length} max={Math.max(events.length, 1)} hint="Refusals recorded in the newest 200 events." />}
         </div>
       </section>
 
