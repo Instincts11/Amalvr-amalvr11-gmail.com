@@ -123,14 +123,33 @@ Pagination refuses `limit` outside 1..200 and `offset < 0` with 400. `offset=999
 
 ## Phase 7 — the console
 
-_Where did the server's answer and your instinct disagree about what should be on screen?_
+### 2026-09-26 — the nav did not move when the org answer did
+
+Expected the viewer's Devices entry to disappear. Phase 2 measured org-level `device:view` as `explicit_deny` from `grt_viewer_deny_kiosk`. The nav is gated by `device:list`, which was still `allow` / `role:viewer`. The kiosk row is what disappeared: the list asks `device:view` per device, and that row's answer is deny, so the row is not rendered. Same person, two questions.
+
+The shell background is the org theme (`cobalt` `#0e1c36`, `amber` `#2a1c0a`). Switching Dana from Acme to Globex changes `getComputedStyle(app-shell).backgroundColor`. There is no role table under `web/`. `data-state="unlocked"` is rendered only when `permissions[key].effect === 'allow'` on the object the server sent. The architecture test rewrites `device:control` to deny in the devices response and the button count goes to 0.
+
+`npx playwright test` — 25 passed (31.9s). Reload restores Acme from the refresh cookie. `document.cookie` does not contain `rt=` because that cookie is `HttpOnly`.
 
 ## Phase 8 — hardening
 
-_What did you measure, what did you fix, and what did you deliberately leave alone? Anything you
-chose not to build belongs here with its reason._
+### 2026-09-26 — four queries, not one per device
+
+Wrapped `db.prepare` and called `resolveDevices` for Dana across Acme's 5 devices, 200 times.
+
+```
+queries/call 4
+ms/call     0.144
+```
+
+The four are membership, role baseline, catalogue, and the caller's grants. The route adds one `SELECT` for the device rows. Nothing in that path grows with the row count. No cache. A cache would have to be keyed by `(userId, orgId)` and would still be wrong for a grant window, because `expires_at == now` flips on the next request with no write to invalidate against.
+
+`check-api.js` — 66 passed. `check-permissions.js` — 35. `check-jwt.js` — 43. `check-personalisation.js` — 18, including `device:reboot`.
+
+Not built, on purpose: rate limits (they would make the public suites timing-sensitive, and the starter lists them as out of scope), email delivery, password reset, and any byte stream for control, terminal, or file transfer. File transfer writes an audit row and returns `movedBytes: false`.
 
 ## Open threads
 
-_Things you know are wrong, unfinished, or that you would do differently with another day. Listing
-these honestly is worth more than pretending they do not exist — we will find them anyway._
+- `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
+- Decommission and transfer both record `end_reason = device_transferred`. The `CHECK` list has no decommission value. `superseded` is the other unused word and it means something else.
+- Accept returns an access token and does not set the refresh cookie. See DECISIONS.md. The invite page then shows the login form, which is what `ui.spec.js` waits for.

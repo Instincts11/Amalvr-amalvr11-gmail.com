@@ -1,5 +1,5 @@
 import { audit } from '../audit.js';
-import { hashInviteToken, hashPassword, newInviteToken } from '../auth.js';
+import { hashInviteToken, hashPassword, issueAccessToken, newInviteToken } from '../auth.js';
 import { bumpPermVersion, newId, nowIso } from '../db.js';
 import { badRequest, conflict, gone, notFound, send } from '../http.js';
 import { assertCanAssignRole, assertRoleExists } from '../lifecycle.js';
@@ -23,7 +23,7 @@ function assertInviteOpen(row) {
   if (row.revoked_at || row.expires_at <= nowIso()) throw gone();
 }
 
-export function registerInvites(router, { db }) {
+export function registerInvites(router, { db, secret }) {
   router.post('/v1/orgs/:org/invites', (ctx, params, res) => {
     const email = String(ctx.body.email ?? '').trim().toLowerCase();
     const role = String(ctx.body.role ?? '');
@@ -174,7 +174,14 @@ export function registerInvites(router, { db }) {
       return user;
     });
 
-    accept();
-    send(res, 200, { role: row.role, email: row.email });
+    const user = accept();
+    const membership = db.prepare(
+      `SELECT role, perm_version FROM memberships WHERE org_id = ? AND user_id = ?`
+    ).get(row.org_id, user.id);
+    const token = issueAccessToken(
+      { userId: user.id, orgId: row.org_id, role: membership.role, permVersion: membership.perm_version },
+      secret
+    );
+    send(res, 200, { role: membership.role, email: row.email, token });
   });
 }

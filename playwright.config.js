@@ -19,10 +19,10 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 
   webServer: {
-    command: 'node scripts/load-db.js && node server/index.js',
+    command: 'npx vite build && node scripts/load-db.js && node server/index.js',
     url: `http://localhost:${PORT}/v1/auth/me`,
     reuseExistingServer: false,
-    timeout: 30_000,
+    timeout: 120_000,
     env: {
       DATABASE_FILE: 'e2e.db',
       PORT: String(PORT),
