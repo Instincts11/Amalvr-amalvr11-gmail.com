@@ -38,8 +38,26 @@ const PUBLIC_ROUTES = new Set([
 // ---------------------------------------------------------------------------
 // The request pipeline. Read this top to bottom and you know how the app works.
 // ---------------------------------------------------------------------------
+function logPath(pathname) {
+  return pathname.replace(/^(\/v1\/invites\/)[^/]+/, '$1:token');
+}
+
+function observe(req, res, requestId, pathname) {
+  const started = Date.now();
+  let status = res.statusCode || 200;
+  const writeHead = res.writeHead.bind(res);
+  res.writeHead = (code, ...args) => {
+    status = code;
+    return writeHead(code, ...args);
+  };
+  res.on('finish', () => {
+    console.log(`${req.method} ${logPath(pathname)} ${status} ${requestId} ${Date.now() - started}ms`);
+  });
+}
+
 async function handleApi(req, res, url) {
   const requestId = `req_${crypto.randomUUID().slice(0, 8)}`;
+  observe(req, res, requestId, url.pathname);
 
   try {
     const hit = router.match(req.method, url.pathname);

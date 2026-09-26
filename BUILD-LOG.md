@@ -170,6 +170,10 @@ The starter already called `server.close` and `db.close` on SIGINT and SIGTERM. 
 
 Logout is `POST /v1/auth/logout` with no body. Requiring `application/json` on every POST would turn that into 400 and the UI sign-out would fail. `readJson` only checks the header once a byte arrives. A non-empty body of `text/plain` is 400 `VALIDATION`. A declared `content-length` over 1 MB is rejected before the rest is buffered. `check-api.js` and `web/api.js` already send `application/json` whenever they send a body.
 
+### 2026-09-26 — the access log must not keep the invite token
+
+One line per `/v1` request: method, path, status, request id, milliseconds. No authorization header, no cookie, no body. The invite peek and accept routes put the raw token in the path, and that token is the secret. Those lines are written as `/v1/invites/:token` so a log file is not a second copy of the invite.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
