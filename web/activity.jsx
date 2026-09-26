@@ -15,7 +15,7 @@ function Sheet({ children }) {
   return <div className="overflow-x-auto">{children}</div>;
 }
 
-const th = 'px-4 py-3 text-left text-[11px] font-medium tracking-[0.16em] text-[#7f8c82] uppercase';
+const th = 'px-4 py-3 text-left text-[13px] font-medium tracking-[0.16em] text-[#7f8c82] uppercase';
 const td = 'border-t border-[#1a2420] px-4 py-3 align-middle';
 
 export function Sessions({ orgId, sessions, perms, selfId, setSessions, setView, run }) {
@@ -29,8 +29,8 @@ export function Sessions({ orgId, sessions, perms, selfId, setSessions, setView,
     <section>
       <header className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-[2.65rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Sessions</h2>
-          <p className="mt-3 w-full text-sm text-[#7f8c82]">A live session keeps the authority it started with. Hiding a button does not end it.</p>
+          <h2 className="text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Sessions</h2>
+          <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">A live session keeps the authority it started with. Hiding a button does not end it.</p>
         </div>
         <Action className={btnPrimary} perms={perms} permission="session:start" testid="new-session" onClick={() => setView('devices')}>Start from a device</Action>
       </header>
@@ -42,7 +42,7 @@ export function Sessions({ orgId, sessions, perms, selfId, setSessions, setView,
         onChange={(event) => setQuery(event.target.value)}
       />
       <Sheet>
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full border-collapse text-lg">
           <thead>
             <tr>
               <th className={th}>Device</th>
@@ -99,8 +99,8 @@ export function Audit({ events }) {
   return (
     <section>
       <header className="mb-5">
-        <h2 className="text-[2.65rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Audit</h2>
-        <p className="mt-3 text-sm text-[#7f8c82]">What was allowed, what was refused, and who asked. The server returns at most 200 events.</p>
+        <h2 className="text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Audit</h2>
+        <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">What was allowed, what was refused, and who asked. The server returns at most 200 events.</p>
       </header>
       <input
         className="mb-3 w-full max-w-xs border-0 bg-transparent py-1 text-sm outline-none placeholder:text-[#7f8c82]"
@@ -110,7 +110,7 @@ export function Audit({ events }) {
         onChange={(event) => setQuery(event.target.value)}
       />
       <Sheet>
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full border-collapse text-lg">
           <thead>
             <tr>
               <th className={th}>When</th>

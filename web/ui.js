@@ -11,7 +11,10 @@ export const field =
   'w-full border-0 border-b border-[#1a2420] bg-transparent px-0 py-2 text-sm text-[#e8f2e6] outline-none placeholder:text-[#7f8c82] focus:border-[#39FF14]';
 
 export const pageTitle =
-  'text-[2.65rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]';
+  'text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]';
 
 export const kicker =
-  'text-[11px] tracking-[0.18em] text-[#7f8c82] uppercase';
+  'text-[13px] tracking-[0.16em] text-[#7f8c82] uppercase';
+
+export const copy =
+  'text-xl leading-8 text-[#7f8c82]';

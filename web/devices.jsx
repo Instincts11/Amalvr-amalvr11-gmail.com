@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from './api.js';
 import { Action } from './action.jsx';
-import { btnPrimary, kicker, pageTitle } from './ui.js';
+import { btnPrimary, copy, kicker, pageTitle } from './ui.js';
 import { Pager, usePaged } from './pager.jsx';
 
 export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDevices, setNotice, setView, run, embedded = false }) {
@@ -38,7 +38,7 @@ export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDev
           </div>
         </div>
         </div>
-        <div className="mt-4 w-full space-y-2 text-sm leading-6 text-[#7f8c82]">
+        <div className={`mt-4 w-full space-y-3 ${copy}`}>
           <p>Machines this organization can see. A session is a record, not a connection.</p>
           <p>View, control, and terminal do not open the other computer. There is no screen, no shell, and no keystrokes.</p>
           <p>Control and terminal are exclusive on one device. View can sit beside them.</p>
@@ -72,7 +72,7 @@ export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDev
       {devicesReady && devices.length === 0 && <p className="py-8 text-sm text-[#7f8c82]" data-testid="devices-empty">No devices in this organization yet.</p>}
       {devices.length > 0 && shown.length === 0 && <p className="py-8 text-sm text-[#7f8c82]">No devices match that filter.</p>}
       {shown.length > 0 && (
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full border-collapse text-lg">
           <thead>
             <tr className={`text-left ${kicker}`}>
               <th className="py-3 pr-4 font-normal">Name</th>

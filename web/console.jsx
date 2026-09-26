@@ -215,7 +215,7 @@ function Console({ session, setSession }) {
   const suspended = Object.values(perms ?? {}).some((item) => item.reason === 'suspended');
 
   const accent = themeColor(org.theme);
-  const navClass = (current) => `shrink-0 py-2 text-left text-[15px] transition duration-200 md:w-full ${current ? 'text-[#39FF14] shadow-[inset_0_-1px_0_#39FF14]' : 'text-[#7f8c82] hover:text-[#e8f2e6]'}`;
+  const navClass = (current) => `shrink-0 py-2 text-left text-lg transition duration-200 md:w-full ${current ? 'text-[#39FF14] shadow-[inset_0_-1px_0_#39FF14]' : 'text-[#7f8c82] hover:text-[#e8f2e6]'}`;
 
   return (
     <div className="min-h-screen p-2.5 sm:p-3" data-testid="app-shell" data-org-id={org.id} data-org-theme={org.theme} style={{ backgroundColor: accent, '--org': accent }}>
@@ -240,7 +240,7 @@ function Console({ session, setSession }) {
         </nav>
         <div className="mt-6 border-t border-[#1a2420] pt-4 md:mt-auto">
           <p className="text-[11px] tracking-[0.16em] text-[#7f8c82] uppercase">Role</p>
-          <p className="mt-1 text-sm"><span data-testid="active-role">{session.role}</span></p>
+          <p className="mt-1 text-lg"><span data-testid="active-role">{session.role}</span></p>
           <button type="button" className="mt-3 block text-left text-sm text-[#7f8c82] transition duration-200 hover:text-[#39FF14]" onClick={() => run(async () => {
             if (!window.confirm(`Leave ${org.name}? The last owner cannot leave.`)) return;
             await api('DELETE', `/v1/orgs/${org.id}/members/me`);
@@ -361,13 +361,13 @@ function Console({ session, setSession }) {
         {view === 'admin' && (
           <section>
             <header className="mb-8">
-              <h2 className="text-[2.65rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Admin</h2>
-              <p className="mt-3 text-sm text-[#7f8c82]">Name and lifetime of this organization.</p>
+              <h2 className="text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Admin</h2>
+              <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">Name and lifetime of this organization.</p>
             </header>
             <div className="grid gap-10 md:grid-cols-2">
               <article className="border-t border-[#1a2420] pt-5">
                 <h3 className="text-2xl tracking-[-0.03em]">Organization name</h3>
-                <p className="mt-2 mb-5 text-sm text-[#7f8c82]">Shown wherever this organization is named.</p>
+                <p className="mt-2 mb-5 w-full text-xl leading-8 text-[#7f8c82]">Shown wherever this organization is named.</p>
                 <Action className={btnPrimary} perms={perms} permission="org:update" testid="rename-org" onClick={() => run(async () => {
                   const name = window.prompt('Organization name', org.name);
                   if (!name || !name.trim()) return;
@@ -378,7 +378,7 @@ function Console({ session, setSession }) {
               </article>
               <article className="border-t border-[#1a2420] pt-5">
                 <h3 className="text-2xl tracking-[-0.03em]">Delete organization</h3>
-                <p className="mt-2 mb-5 text-sm text-[#7f8c82]">Removes the organization. Memberships and devices go with it.</p>
+                <p className="mt-2 mb-5 w-full text-xl leading-8 text-[#7f8c82]">Removes the organization. Memberships and devices go with it.</p>
                 <Action className="inline-flex items-center justify-center rounded-[2px] border border-[#ff5a6a]/70 px-3.5 py-2 text-sm text-[#ff8b96] transition duration-200 hover:bg-[#ff5a6a] hover:text-[#050505]" perms={perms} permission="org:delete" testid="delete-org" onClick={() => run(async () => {
                   if (!window.confirm(`Delete ${org.name}?`)) return;
                   await api('DELETE', `/v1/orgs/${org.id}`);

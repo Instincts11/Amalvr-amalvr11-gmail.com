@@ -41,7 +41,7 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className={pageTitle}>People</h2>
-          <p className="mt-3 text-sm text-[#7f8c82]">{members.length} people in this organization.</p>
+          <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">{members.length} people in this organization.</p>
         </div>
         <Action className={btnPrimary} perms={perms} permission="user:invite" testid="invite-user" onClick={() => setInviteOpen((open) => !open)}>Invite</Action>
       </div>
@@ -87,7 +87,7 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
                 <div className="mb-3 flex gap-3">
                   <span className="text-xl leading-none text-[#39FF14]" aria-hidden="true">{(member.name || '?').slice(0, 1)}</span>
                   <span>
-                    <span className="block text-sm">{member.name}</span>
+                    <span className="block text-lg">{member.name}</span>
                     <span className="block text-xs text-[#7f8c82]">{member.email}</span>
                     <span className="block text-xs text-[#7f8c82]">{member.status}</span>
                   </span>
@@ -134,7 +134,7 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
             <>
               <p className={kicker}>Selected</p>
               <h3 className="mt-3 text-5xl leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">{selected.name}</h3>
-              <p className="mt-4 text-sm text-[#7f8c82]">{selected.email}</p>
+              <p className="mt-4 text-xl text-[#7f8c82]">{selected.email}</p>
               <p className="mt-6 flex gap-6">
                 <span className={kicker}>{effective?.role ?? selected.role}</span>
                 <span className={kicker}>{selected.status}</span>

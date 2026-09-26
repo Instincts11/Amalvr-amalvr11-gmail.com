@@ -36,8 +36,8 @@ export function Grants({ orgId, grants, perms, catalogue, open, setOpen, run, on
     <section>
       <header className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-[2.65rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Grants</h2>
-          <p className="mt-3 text-sm text-[#7f8c82]">Allow or deny on top of the role. Deny wins.</p>
+          <h2 className="text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Grants</h2>
+          <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">Allow or deny on top of the role. Deny wins.</p>
         </div>
         <Action className={btnPrimary} perms={perms} permission="grant:create" testid="new-grant" onClick={() => run(openForm)}>New grant</Action>
       </header>
@@ -84,7 +84,7 @@ export function Grants({ orgId, grants, perms, catalogue, open, setOpen, run, on
       />
       {grants.length > 0 && filtered.length === 0 && <p className="py-4 text-sm text-[#7f8c82]">Nothing matches that filter.</p>}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full border-collapse text-lg">
           <thead>
             <tr className="text-left text-[11px] tracking-[0.16em] text-[#7f8c82] uppercase">
               <th className="px-4 py-3 font-semibold">Person</th>

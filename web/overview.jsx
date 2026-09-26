@@ -12,7 +12,7 @@ function Block({ pageKey, title, open, children }) {
       <div className="mb-3 flex items-baseline justify-between gap-4">
         <div>
           <p className={kicker}>{pathForView(pageKey)}</p>
-          <h3 className="mt-1 text-xl tracking-[-0.03em] text-[#f4fff2]">{title}</h3>
+          <h3 className="mt-1 text-2xl tracking-[-0.03em] text-[#f4fff2]">{title}</h3>
         </div>
         <button type="button" className="text-sm text-[#39FF14]" onClick={() => open(pageKey)}>Open page</button>
       </div>
@@ -68,13 +68,13 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
     <div>
       <p className={kicker}>Start</p>
       <h2 className={pageTitle}>{org.name}</h2>
-      <p className="mt-2 text-sm text-[#7f8c82]">{role}. Sessions are records. This role cannot see another organization.</p>
+      <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">{role}. Sessions are records. This role cannot see another organization.</p>
       <section className="mt-6 border border-[#1a2420] bg-[#0A0D0B]/80 px-5 py-4">
         <p className={kicker}>Organization</p>
         <div className={`mt-4 grid grid-cols-2 gap-6 sm:grid-cols-3 ${stats.length > 3 ? 'lg:grid-cols-6' : ''}`}>
           {stats.map((stat) => (
             <div key={stat.label}>
-              <p className="text-[1.7rem] leading-none tracking-[-0.04em] text-[#39FF14]">{stat.value}</p>
+              <p className="text-[2.4rem] leading-none tracking-[-0.04em] text-[#39FF14]">{stat.value}</p>
               <p className={`mt-2 ${kicker}`}>{stat.label}</p>
             </div>
           ))}
@@ -99,7 +99,7 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
               <li key={member.id} className="flex flex-wrap items-baseline justify-between gap-3 py-2.5">
                 <span>
                   <span className="text-[#f4fff2]">{member.name}</span>
-                  <span className="ml-3 text-sm text-[#7f8c82]">{member.email}</span>
+                  <span className="ml-3 text-lg text-[#7f8c82]">{member.email}</span>
                 </span>
                 <span className={kicker}>{member.role} · {member.status}</span>
               </li>
@@ -120,7 +120,7 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
               <li key={grant.id} className="flex flex-wrap items-baseline justify-between gap-3 py-2.5">
                 <span>
                   <span className="text-[#f4fff2]">{personName[grant.user_id] || grant.user_id}</span>
-                  <span className="ml-3 text-sm text-[#7f8c82]">{deviceName[grant.device_id] || (grant.device_id ? grant.device_id : 'Entire organization')}</span>
+                  <span className="ml-3 text-lg text-[#7f8c82]">{deviceName[grant.device_id] || (grant.device_id ? grant.device_id : 'Entire organization')}</span>
                 </span>
                 <span className={grant.effect === 'deny' ? 'text-xs tracking-[0.12em] text-[#ff8b96] uppercase' : 'text-xs tracking-[0.12em] text-[#39FF14] uppercase'}>
                   {grant.effect}
@@ -162,7 +162,7 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
               <li key={event.id} className="flex flex-wrap items-baseline justify-between gap-3 py-2.5">
                 <span>
                   <span className="text-[#f4fff2]">{event.action}</span>
-                  <span className="ml-3 text-sm text-[#7f8c82]">{event.at}</span>
+                  <span className="ml-3 text-lg text-[#7f8c82]">{event.at}</span>
                 </span>
                 <span className={kicker}>{event.result}{event.reason_code ? ` · ${event.reason_code}` : ''}</span>
               </li>
@@ -173,7 +173,7 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
 
       {showAdmin && (
         <Block pageKey="admin" title="Admin" open={open}>
-          <p className="text-sm text-[#7f8c82]">{org.name} · {org.theme}. Rename and delete stay on the admin page.</p>
+          <p className="w-full text-xl leading-8 text-[#7f8c82]">{org.name} · {org.theme}. Rename and delete stay on the admin page.</p>
         </Block>
       )}
     </div>
