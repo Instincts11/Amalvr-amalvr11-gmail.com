@@ -81,22 +81,45 @@ Freshness in `context.js` uses `!==` against `memberships.perm_version`, and a p
 
 ## Phase 3 — orgs, members, invites
 
-_Anything you had to work out that no document states. Invite lifecycle states are a common
-source of this._
+### 2026-09-26 — a removed member cannot be inserted again
+
+`memberships` is `UNIQUE (org_id, user_id)` and `users` has no delete column. Removing `usr_acme_viewer` returns 200 and leaves the row at `status = removed`. A second `INSERT` on accept would be a constraint error, not a new membership.
+
+Accept updates that row: role, `status = active`, `perm_version`. Re-invited `viewer@acme.test` as operator, accept returned 200 `{ role: "operator" }`.
+
+The password in the accept body did not stick. `demo1234` still logs in (200) and `hunter2hunter2` is 401. `password_hash` is `NOT NULL`, so the user row had to exist before there was a membership, and overwriting it would turn an invite token into a password reset for anyone who already had an account. New emails are the only path that sets a password. There is no `invited` membership for a brand-new email either: the invite row is the pending state, because a membership cannot point at a user who does not exist yet.
+
+`one_live_invite_per_email` is what makes the double invite a database error. The route maps `SQLITE_CONSTRAINT` to 409. The accept update is `WHERE accepted_at IS NULL`; `changes !== 1` is the loser of two concurrent accepts.
+
+### 2026-09-26 — equal rank is not one rule
+
+Expected owner→owner to fail the same way admin→admin does. `check-api.js` demotes `usr_acme_owner` (also an owner) to viewer and wants 200, while admin assigning `owner` wants `FORBIDDEN`. Highest rank may modify the other highest-rank member, and is the only rank that may assign the highest rank. Everyone else needs a strictly higher rank than both the target and the role being assigned. Ranks come from `roles.rank`. In this database `reviewer` is 35, between operator (30) and admin (40), so an admin may modify a reviewer and an operator may not. Hardcoding the five documented keys would get that pair backwards the moment the nonce changes.
 
 ## Phase 4 — devices and grants
 
-_What happens at the boundary where two grants disagree, or where a grant's scope and the
-question's scope differ? Say what you predicted and what you got._
+### 2026-09-26 — org-wide authority is not the org-level view
+
+The org-level view treats a device allow as enough (`session:start` for the viewer, measured in phase 2). Using that same answer for `assertMayGrant(deviceId = null)` would let a person with control on one device hand out control for the whole org. Granting with no device ignores device-scoped allows and still honors denies, including a deny on a single device. Granting with a device uses the device answer. A caller who only holds the permission on device A gets `scope_mismatch` for an org-wide grant and an allow for a grant on device A.
+
+`device:teleport` is rejected with `reason: unknown_permission` before the insert. The foreign key is still the backstop: a pattern that is not in `permission_patterns` raises `SQLITE_CONSTRAINT_FOREIGNKEY` and the route maps that to the same 400. Empty `permissions` never reaches the foreign key, so that 400 is in the route.
+
+`check-api.js` — 66 passed, 0 failed, including the kiosk absent from the viewer's list (4 rows) and the grant source on `globex-desk-01` starting with `grant:`.
 
 ## Phase 5 — sessions
 
-_Two permissions, one device. What did you have to resolve, and in what order, to keep the two
-failure reasons distinguishable?_
+### 2026-09-26 — endActiveSessions with only an org id ends every session
+
+The delete handler called `endActiveSessions({ orgId })` and then updated the one row. The helper ANDs whatever filters it is given. An omitted `userId` means every user, not "the user I forgot". One stop would have ended every active session in the org, including the grandfathered control session the suite expects to survive a demotion. Removed the helper call. Stop updates `WHERE id = ? AND state = 'active'` only.
+
+`control` and `terminal` insert and let `one_exclusive_session_per_device` refuse the second. The 409 body names the holder's session id. `view` is not in that index, so a view beside a control is 201. `session:start` is checked before the mode permission, which is why qa-android is `missing_permission` and control on lab-mac is `missing_device_permission`.
+
+Demotion bumps `perm_version` and does not set `end_reason`. Sam's old token is `TOKEN_STALE` on the next call. Suspension does both: bump, and `end_reason = user_suspended`. A token minted before the suspension never sees `suspended`; freshness fires first. A token minted after it does.
 
 ## Phase 6 — audit
 
-_What did you decide counts as an auditable event, and what pushed you to that line?_
+Denied attempts go through `auditDenials`, which writes one row on a 403 and rethrows. Success rows are inside the same transaction as the change. A 404 is not a denial — the caller was not allowed to know the row existed — so cross-org misses are not audited. The seeded `aud_003` already has `result = deny` and a reason code; the suite's "contains denials" passes on that row alone, which is why a log that only records successes would still go green here. The wrapper is what covers the attempts the fixture does not contain.
+
+Pagination refuses `limit` outside 1..200 and `offset < 0` with 400. `offset=99999` is a legal empty page, not a clamp.
 
 ## Phase 7 — the console
 
