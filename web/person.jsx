@@ -19,16 +19,21 @@ function Pill({ on, children, onClick }) {
 
 function Share({ allows, denies }) {
   const total = allows + denies;
-  const allowStop = total > 0 ? Math.round((allows / total) * 100) : 0;
+  const allowPct = total > 0 ? (allows / total) * 100 : 0;
+  const denyPct = total > 0 ? 100 - allowPct : 0;
   return (
-    <div className="flex items-center gap-4">
-      <div className="relative h-24 w-24 shrink-0">
-        <div className="h-full w-full rounded-full" style={{ background: `conic-gradient(#39FF14 0% ${allowStop}%, #ff8b96 ${allowStop}% 100%)` }} />
-        <div className="absolute inset-4 grid place-items-center rounded-full bg-[#050505] text-sm text-[#f4fff2]">{total}</div>
+    <div className="w-full">
+      <div className="relative h-72 w-72">
+        <div className="h-full w-full rounded-full" style={{ background: `conic-gradient(#39FF14 0% ${allowPct}%, #ff8b96 ${allowPct}% 100%)` }} />
+        <div className="absolute inset-12 grid place-items-center rounded-full bg-[#050505] text-5xl text-[#f4fff2]">{total}</div>
       </div>
-      <div className="text-sm leading-6">
-        <p className="text-[#39FF14]">{allows} allow</p>
-        <p className="text-[#ff8b96]">{denies} deny</p>
+      <div className="mt-8 flex w-full items-baseline justify-between gap-8 text-lg">
+        <span className="text-[#39FF14]">{allows} allow</span>
+        <span className="text-[#ff8b96]">{denies} deny</span>
+      </div>
+      <div className="mt-3 flex h-40 w-full">
+        <div className="h-full bg-[#39FF14]" style={{ width: `${allowPct}%` }} />
+        <div className="h-full bg-[#ff8b96]" style={{ width: `${denyPct}%` }} />
       </div>
     </div>
   );
@@ -89,9 +94,6 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
             <span className={member.status === 'suspended' ? 'rounded-full border border-[#ff8b96] px-3 py-1 text-xs text-[#ff8b96]' : 'rounded-full border border-[#1a2420] px-3 py-1 text-xs text-[#7f8c82]'}>{member.status}</span>
             {rank && <span className="rounded-full border border-[#1a2420] px-3 py-1 text-xs text-[#7f8c82]">rank {rank.rank}</span>}
           </div>
-          <div className="mt-5">
-            <Share allows={allows} denies={denies} />
-          </div>
           <nav className="mt-6 grid gap-1">
             {SECTIONS.map(([item, index]) => (
               <button key={item} type="button" className={tab === item ? 'flex items-baseline gap-3 bg-[#39FF14] px-3 py-2 text-left text-sm text-[#050505]' : 'flex items-baseline gap-3 px-3 py-2 text-left text-sm text-[#7f8c82]'} onClick={() => setTab(item)}>
@@ -106,8 +108,12 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
           <p className={kicker}>{tab}</p>
           <h2 className={`mt-1 ${pageTitle}`}>{member.name}</h2>
 
+          <div className="mt-8 w-full">
+            <Share allows={allows} denies={denies} />
+          </div>
+
           {tab === 'Profile' && (
-            <div className="mt-6 max-w-3xl space-y-3 text-base leading-7 text-[#7f8c82]">
+            <div className="mt-8 w-full space-y-3 text-base leading-7 text-[#7f8c82]">
               <p>This membership is {member.status}. The role {member.role}{rank ? ` has rank ${rank.rank}` : ''} and is read from the database, not from a table in the page.</p>
               <p>A deny beats every allow. Changing this role bumps the permission version, so the next token is fresh. A session already running keeps the authority it started with.</p>
               <p>The last owner cannot leave, be removed, be suspended, or be demoted. Anyone else needs a strictly higher rank to change this membership.</p>
@@ -150,7 +156,7 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
                   <Pill key={item} on={filter === item} onClick={() => setFilter(item)}>{item}</Pill>
                 ))}
               </div>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="mt-4 grid w-full gap-4">
                 {[...groups.entries()].map(([name, rows]) => (
                   <section key={name} className="border border-[#1a2420] p-4">
                     <p className={kicker}>{name}</p>
@@ -176,7 +182,7 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
               <li className="relative pb-8">
                 <span className="absolute top-1.5 -left-[29px] h-2.5 w-2.5 rounded-full bg-[#39FF14]" />
                 <p className={kicker}>Grants · {mineGrants.length}</p>
-                <p className="mt-2 text-sm leading-6 text-[#7f8c82]">A grant on this person overrides the role. A deny still wins over every allow.</p>
+                <p className="mt-2 w-full text-base leading-7 text-[#7f8c82]">A grant on this person overrides the role. A deny still wins over every allow.</p>
                 <ul className="mt-3 space-y-2 text-sm">
                   {mineGrants.map((grant) => (
                     <li key={grant.id} className={grant.effect === 'deny' ? 'text-[#ff8b96]' : 'text-[#39FF14]'}>{grant.effect} · {(grant.permissions || []).join(', ') || 'grant'}</li>
@@ -187,7 +193,7 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
               <li className="relative pb-8">
                 <span className="absolute top-1.5 -left-[29px] h-2.5 w-2.5 rounded-full bg-[#39FF14]" />
                 <p className={kicker}>Sessions · {mineSessions.length}</p>
-                <p className="mt-2 text-sm leading-6 text-[#7f8c82]">Each session is a record of view, control, terminal, or file transfer. None of them open the other computer.</p>
+                <p className="mt-2 w-full text-base leading-7 text-[#7f8c82]">Each session is a record of view, control, terminal, or file transfer. None of them open the other computer.</p>
                 <ul className="mt-3 space-y-2 text-sm text-[#7f8c82]">
                   {mineSessions.slice(0, 6).map((row) => (
                     <li key={row.id}>{row.mode} · {row.state}</li>
@@ -198,7 +204,7 @@ export function Person({ orgId, member, roles, perms, selfId, grants, sessions, 
               <li className="relative">
                 <span className="absolute top-1.5 -left-[29px] h-2.5 w-2.5 rounded-full bg-[#39FF14]" />
                 <p className={kicker}>Audit · {mineEvents.length}</p>
-                <p className="mt-2 text-sm leading-6 text-[#7f8c82]">These are the newest events in which this person is the actor.</p>
+                <p className="mt-2 w-full text-base leading-7 text-[#7f8c82]">These are the newest events in which this person is the actor.</p>
                 <ul className="mt-3 space-y-2 text-sm text-[#7f8c82]">
                   {mineEvents.slice(0, 6).map((event) => (
                     <li key={event.id}>{event.action} · {event.result}</li>
