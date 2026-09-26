@@ -230,6 +230,10 @@ The schema checks `email = lower(email)`. Folding case in the route would hide a
 
 Health stays off `/v1`. A content type is required only once a body byte arrives. CSP, rate limits, and gating `POST /orgs` on suspension stay rejected. The four-part write-up cites `ea43c40`, `70e75a3`, `5ef13ec`, and `48e46bc`.
 
+### 2026-09-26 — one command for the node suites
+
+`npm run check` runs JWT, permissions, personalisation, the API contract, and `check-ops.js`. Playwright stays `npm test` because it needs a browser install the node suites do not. `&&` stops on the first failure so a red JWT check does not leave a server up for the API script.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
