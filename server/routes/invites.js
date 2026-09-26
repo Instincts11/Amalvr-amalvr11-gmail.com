@@ -25,8 +25,9 @@ function assertInviteOpen(row) {
 
 export function registerInvites(router, { db, secret }) {
   router.post('/v1/orgs/:org/invites', (ctx, params, res) => {
-    const email = String(ctx.body.email ?? '').trim().toLowerCase();
+    const email = String(ctx.body.email ?? '').trim();
     const role = String(ctx.body.role ?? '');
+    if (email !== email.toLowerCase()) throw badRequest('email must be lowercase');
     if (!email || !email.includes('@') || email.length > 254) throw badRequest('email is required');
     assertRoleExists(db, role);
     allow(db, ctx, 'user:invite', null, { action: 'invite.create', targetType: 'invite', targetId: email });

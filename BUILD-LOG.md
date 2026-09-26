@@ -216,6 +216,12 @@ The sign-in email input is `autoFocus`. The error alert is still `role="alert"` 
 
 The sessions list already returns `expires_at`. The table prints that timestamp as UTC. There is no client countdown and no extra request. `session-row` and `stop-session` are unchanged. A permission change still does not clear this column; the row stays until the server says the session ended.
 
+## Phase 11 — validation
+
+### 2026-09-26 — an invite email is stored as sent, so it has to already be lowercase
+
+The schema checks `email = lower(email)`. Folding case in the route would hide a value the column will not keep, and it would also invite `User@x` and `user@x` as two people until the check failed on the second insert. The route now returns 400 `email must be lowercase` before the insert. Login still folds case, because a person typing their address is not creating a row. The fixture and `ui.spec.js` already send lowercase addresses.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
