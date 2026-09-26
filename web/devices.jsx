@@ -43,6 +43,9 @@ export function Devices({ orgId, orgs = [], devices, devicesReady, perms, setDev
           <p>View, control, and terminal do not open the other computer. There is no screen, no shell, and no keystrokes.</p>
           <p>Control and terminal are exclusive on one device. View can sit beside them.</p>
           <p>A deny beats every allow. There is no super-admin, and a role in this organization cannot see another organization.</p>
+          <p>File transfer records the authorisation and moves no bytes. The other computer is not contacted.</p>
+          <p>Transferring a device needs device:provision in both organizations. Open sessions on that device end, and its grants are revoked.</p>
+          <p>Decommission removes the machine from this organization and ends its sessions. Search and kind only narrow rows already loaded.</p>
         </div>
       </header>}
       <div className="mb-2 flex flex-wrap items-end justify-between gap-4 border-b border-[#1a2420] pb-3">

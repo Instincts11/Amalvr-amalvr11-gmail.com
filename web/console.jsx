@@ -362,7 +362,10 @@ function Console({ session, setSession }) {
           <section>
             <header className="mb-8">
               <h2 className="text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Admin</h2>
-              <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">Name and lifetime of this organization.</p>
+              <div className="mt-3 w-full space-y-3 text-xl leading-8 text-[#7f8c82]">
+                <p>Name and lifetime of this organization. Rename needs org:update. Delete needs org:delete, which the owner holds and admin does not.</p>
+                <p>Deleting the organization removes its memberships and devices. If you still belong to another organization, the console switches to that one.</p>
+              </div>
             </header>
             <div className="grid gap-10 md:grid-cols-2">
               <article className="border-t border-[#1a2420] pt-5">

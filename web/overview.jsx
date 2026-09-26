@@ -68,7 +68,11 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
     <div>
       <p className={kicker}>Start</p>
       <h2 className={pageTitle}>{org.name}</h2>
-      <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">{role}. Sessions are records. This role cannot see another organization.</p>
+      <div className="mt-3 w-full space-y-3 text-xl leading-8 text-[#7f8c82]">
+        <p>{role}. Sessions are records. This role cannot see another organization, and there is no super-admin who can.</p>
+        <p>The figures count the full lists. Each section below is that same list, filtered and paged. Open page leaves the summary for the working view.</p>
+        <p>View, control, terminal, and file transfer write a record. They do not open a screen, run a shell, or move bytes.</p>
+      </div>
       <section className="mt-6 border border-[#1a2420] bg-[#0A0D0B]/80 px-5 py-4">
         <p className={kicker}>Organization</p>
         <div className={`mt-4 grid grid-cols-2 gap-6 sm:grid-cols-3 ${stats.length > 3 ? 'lg:grid-cols-6' : ''}`}>

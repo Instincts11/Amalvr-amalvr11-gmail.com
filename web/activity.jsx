@@ -30,7 +30,11 @@ export function Sessions({ orgId, sessions, perms, selfId, setSessions, setView,
       <header className="mb-5 flex items-end justify-between gap-4">
         <div>
           <h2 className="text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Sessions</h2>
-          <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">A live session keeps the authority it started with. Hiding a button does not end it.</p>
+          <div className="mt-3 w-full space-y-3 text-xl leading-8 text-[#7f8c82]">
+            <p>A live session keeps the authority it started with. Hiding a button does not end it.</p>
+            <p>A later change of role or grant leaves a running session in place. Suspension, removal, transfer, and decommission end it.</p>
+            <p>Control and terminal cannot both be active on one device. View can sit beside either. Stop closes that session only.</p>
+          </div>
         </div>
         <Action className={btnPrimary} perms={perms} permission="session:start" testid="new-session" onClick={() => setView('devices')}>Start from a device</Action>
       </header>
@@ -100,7 +104,10 @@ export function Audit({ events }) {
     <section>
       <header className="mb-5">
         <h2 className="text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Audit</h2>
-        <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">What was allowed, what was refused, and who asked. The server returns at most 200 events.</p>
+        <div className="mt-3 w-full space-y-3 text-xl leading-8 text-[#7f8c82]">
+          <p>What was allowed, what was refused, and who asked. Each row is the action, the result, and the reason code.</p>
+          <p>The server accepts a limit from 1 to 200 and an offset of zero or more. This page loads the newest 200. A filter then pages that list.</p>
+        </div>
       </header>
       <input
         className="mb-3 w-full max-w-xs border-0 bg-transparent py-1 text-sm outline-none placeholder:text-[#7f8c82]"

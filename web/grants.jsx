@@ -37,7 +37,11 @@ export function Grants({ orgId, grants, perms, catalogue, open, setOpen, run, on
       <header className="mb-5 flex items-end justify-between gap-4">
         <div>
           <h2 className="text-[3.25rem] leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">Grants</h2>
-          <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">Allow or deny on top of the role. Deny wins.</p>
+          <div className="mt-3 w-full space-y-3 text-xl leading-8 text-[#7f8c82]">
+            <p>Allow or deny on top of the role. A deny beats every allow, including a grant that names one device.</p>
+            <p>A grant is live from its start until, and not including, its end. After that it no longer applies.</p>
+            <p>A wildcard such as device:* covers every permission on that resource, including ones added after the grant was written.</p>
+          </div>
         </div>
         <Action className={btnPrimary} perms={perms} permission="grant:create" testid="new-grant" onClick={() => run(openForm)}>New grant</Action>
       </header>

@@ -41,7 +41,13 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className={pageTitle}>People</h2>
-          <p className="mt-3 w-full text-xl leading-8 text-[#7f8c82]">{members.length} people in this organization.</p>
+          <div className="mt-3 w-full space-y-3 text-xl leading-8 text-[#7f8c82]">
+            <p>{members.length} people in this organization.</p>
+            <p>Roles and ranks are read from the database. The page does not keep its own permission table.</p>
+            <p>The last owner cannot leave, be removed, be suspended, or be demoted. Anyone else needs a strictly higher rank to change a membership.</p>
+            <p>An invite address must already be lowercase. The token is shown once and is stored only as a hash.</p>
+            <p>The panel on the right is the permission set the server resolved for the selected person, including every deny.</p>
+          </div>
         </div>
         <Action className={btnPrimary} perms={perms} permission="user:invite" testid="invite-user" onClick={() => setInviteOpen((open) => !open)}>Invite</Action>
       </div>
