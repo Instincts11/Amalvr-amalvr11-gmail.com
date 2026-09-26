@@ -8,6 +8,16 @@ to carry.
 
 ## Run it
 
+From a clean checkout:
+
+```sh
+npm install
+npm run db:reset
+npm run dev
+```
+
+That serves the API and the console at http://localhost:8080.
+
 ```sh
 npm install
 npm run db:reset     # schema + reference data + demo fixture

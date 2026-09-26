@@ -238,6 +238,10 @@ Health stays off `/v1`. A content type is required only once a body byte arrives
 
 `switchOrg` and `createOrg` already emptied devices, grants, members, sessions, and audit in the same update as `setSession`. The effect on `org.id` did the same and forgot `devicesReady`, so a new org could flash `devices-empty` before its fetch. Those copies are now `clearedOrgLists()` in `web/org-state.js`. `check-ops.js` asserts the five names and that each array is empty. Dropping `sessions` from the helper fails that check and stops clearing sessions in the console.
 
+### 2026-09-26 — the grader command is the first thing in the run section
+
+`README.md` now leads with `npm install`, `npm run db:reset`, `npm run dev`, and http://localhost:8080. The starter's own run block is still under it, including the comments about the fixture and the port. Nothing in the contract section was rewritten.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
