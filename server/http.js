@@ -73,15 +73,44 @@ export function sendError(res, err, requestId) {
 
 const MAX_BODY = 1_000_000; // 1 MB
 
+function isJsonContentType(req) {
+  const type = String(req.headers['content-type'] ?? '').toLowerCase();
+  return type.startsWith('application/json');
+}
+
 export function readJson(req) {
   return new Promise((resolve, reject) => {
+    let failed = false;
+    const fail = (err) => {
+      if (failed) return;
+      failed = true;
+      reject(err);
+    };
+
+    const declared = Number(req.headers['content-length'] ?? 0);
+    if (Number.isFinite(declared) && declared > MAX_BODY) {
+      fail(badRequest('request body too large'));
+      req.resume();
+      return;
+    }
+
     let size = 0;
+    let sawBody = false;
     const chunks = [];
 
     req.on('data', (chunk) => {
+      if (failed) return;
+      if (!sawBody) {
+        sawBody = true;
+        if (!isJsonContentType(req)) {
+          fail(badRequest('content-type must be application/json'));
+          req.destroy();
+          return;
+        }
+      }
       size += chunk.length;
       if (size > MAX_BODY) {
-        reject(badRequest('request body too large'));
+        fail(badRequest('request body too large'));
         req.destroy();
         return;
       }
@@ -89,19 +118,22 @@ export function readJson(req) {
     });
 
     req.on('end', () => {
+      if (failed) return;
       if (size === 0) return resolve({});
       const raw = Buffer.concat(chunks).toString('utf8');
       try {
         const parsed = JSON.parse(raw);
         if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-          return reject(badRequest('body must be a JSON object'));
+          return fail(badRequest('body must be a JSON object'));
         }
         resolve(parsed);
       } catch {
-        reject(badRequest('malformed JSON body'));
+        fail(badRequest('malformed JSON body'));
       }
     });
 
-    req.on('error', reject);
+    req.on('error', (err) => {
+      if (!failed) fail(err);
+    });
   });
 }

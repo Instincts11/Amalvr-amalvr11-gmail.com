@@ -166,6 +166,10 @@ Not built, on purpose: rate limits (they would make the public suites timing-sen
 
 The starter already called `server.close` and `db.close` on SIGINT and SIGTERM. A second signal, or a Vite close that never settled, would call `db.close` again and throw, and `node --watch` would look like a crash rather than a restart. Shutdown is now one-shot, closes the Vite server when it is attached, and exits 1 after five seconds if the sockets do not drain. `npm run dev` still restarts on a file change because the process does exit.
 
+### 2026-09-26 — an empty POST is not a missing content type
+
+Logout is `POST /v1/auth/logout` with no body. Requiring `application/json` on every POST would turn that into 400 and the UI sign-out would fail. `readJson` only checks the header once a byte arrives. A non-empty body of `text/plain` is 400 `VALIDATION`. A declared `content-length` over 1 MB is rejected before the rest is buffered. `check-api.js` and `web/api.js` already send `application/json` whenever they send a body.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
