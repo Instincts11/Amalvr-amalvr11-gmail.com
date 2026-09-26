@@ -192,6 +192,10 @@ The content-type rejection called `req.destroy()`. On Windows that resets the so
 
 `People` is `web/people.jsx`. The button that is present only when `effect === 'allow'` is `web/action.jsx`, because the device table still uses it and a second copy would drift. `user-row`, `role-select`, `invite-user`, `suspend-user`, and `remove-user` are unchanged. The role options are still `roles` from the members response, not a list written in the client.
 
+### 2026-09-26 — grant checkboxes still come from the server catalogue
+
+`Grants` is `web/grants.jsx`. The checkbox keys are `catalogue`, which the shell builds with `Object.keys(session.permissions)`. This checkout includes `device:reboot` only because the login payload included it. `grant-row` still carries `data-effect`. `new-grant`, `grant-user`, `grant-device`, `grant-effect`, and `grant-submit` did not move their test ids.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
