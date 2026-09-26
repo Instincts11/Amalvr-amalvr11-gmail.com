@@ -158,6 +158,10 @@ Not built, on purpose: rate limits (they would make the public suites timing-sen
 
 `send` now sets `x-content-type-options: nosniff`, `referrer-policy: no-referrer`, and `x-frame-options: DENY` on every JSON response, including errors. A Content-Security-Policy would also cover the SPA, and in development that SPA is Vite's middleware with inline refresh. A policy tight enough to matter would break hot reload, and a policy loose enough to allow it would not be a control. The three headers do not touch the script loader.
 
+### 2026-09-26 — health lives beside the API, not inside it
+
+`GET /healthz` runs `SELECT 1` and returns `{ ok: true }`. It is not under `/v1`, so it never goes through `authenticate` and it is not a new permission. A probe that had to log in would be down whenever the token verifier was down, which is the opposite of what a process check is for. A failed prepare returns `{ ok: false }` with 503.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.

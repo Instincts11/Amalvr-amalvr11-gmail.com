@@ -113,6 +113,15 @@ if (DEV) {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
+  if (req.method === 'GET' && url.pathname === '/healthz') {
+    try {
+      db.prepare('SELECT 1 AS ok').get();
+      return send(res, 200, { ok: true });
+    } catch {
+      return send(res, 503, { ok: false });
+    }
+  }
+
   if (url.pathname === '/v1' || url.pathname.startsWith('/v1/')) {
     return handleApi(req, res, url);
   }
