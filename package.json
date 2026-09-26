@@ -17,7 +17,9 @@
     "fingerprint": "node scripts/personalise.js"
   },
   "dependencies": {
-    "better-sqlite3": "^11.10.0"
+    "@tailwindcss/vite": "^4.3.3",
+    "better-sqlite3": "^11.10.0",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",

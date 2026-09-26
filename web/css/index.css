@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Bahnschrift, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --color-void: #050505;
+  --color-panel: #0a0d0b;
+  --color-lift: #111612;
+  --color-signal: #39ff14;
+  --color-mist: #8b978c;
+  --color-line: #1a2420;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    background: #050505;
+    color: #e8f2e6;
+    font-family: Bahnschrift, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 2px solid #39ff14;
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: rgba(57, 255, 20, 0.28);
+    color: #f4fff2;
+  }
+}
+
+.signal-grid {
+  background-color: #050505;
+  background-image:
+    radial-gradient(ellipse 55% 40% at 88% 0%, rgba(57, 255, 20, 0.09), transparent 60%),
+    linear-gradient(rgba(57, 255, 20, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 255, 20, 0.035) 1px, transparent 1px);
+  background-size: auto, 56px 56px, 56px 56px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+}
