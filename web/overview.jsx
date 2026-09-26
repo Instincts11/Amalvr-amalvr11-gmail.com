@@ -30,23 +30,38 @@ function tally(items, key) {
   return [...map.entries()].map(([label, value]) => ({ label, value }));
 }
 
-function Bars({ title, rows, deny }) {
-  const max = Math.max(1, ...rows.map((row) => row.value));
+const RING_TONES = ['#39FF14', '#8dff63', '#1f8a32', '#c6ffb0', '#0e5c28', '#e8ffe0'];
+
+function Ring({ title, rows, deny }) {
+  const total = rows.reduce((sum, row) => sum + row.value, 0);
+  let cursor = 0;
+  let tone = 0;
+  const stops = rows.map((row) => {
+    const start = cursor;
+    const share = total > 0 ? (row.value / total) * 100 : 0;
+    cursor += share;
+    const color = row.label === deny ? '#ff8b96' : RING_TONES[tone++ % RING_TONES.length];
+    return `${color} ${start}% ${cursor}%`;
+  });
+  const paint = stops.length ? stops.join(', ') : '#1a2420 0% 100%';
   return (
-    <div>
-      <p className="text-lg text-[#f4fff2]">{title}</p>
-      {rows.length === 0 && <p className="mt-2 text-sm text-[#7f8c82]">Nothing recorded.</p>}
-      {rows.map((row) => (
-        <div key={row.label} className="mt-3">
-          <div className="flex items-baseline justify-between text-sm">
-            <span className={row.label === deny ? 'text-[#ff8b96]' : 'text-[#39FF14]'}>{row.label}</span>
-            <span className="text-[#7f8c82]">{row.value}</span>
-          </div>
-          <div className="mt-1 h-2 bg-[#1a2420]">
-            <div className={row.label === deny ? 'h-2 bg-[#ff8b96]' : 'h-2 bg-[#39FF14]'} style={{ width: `${Math.round((row.value / max) * 100)}%` }} />
-          </div>
-        </div>
-      ))}
+    <div className="flex items-center gap-5">
+      <div className="relative h-28 w-28 shrink-0">
+        <div className="h-full w-full rounded-full" style={{ background: `conic-gradient(${paint})` }} />
+        <div className="absolute inset-[18px] grid place-items-center rounded-full bg-[#050505] text-lg text-[#f4fff2]">{total}</div>
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-lg text-[#f4fff2]">{title}</p>
+        {rows.length === 0 && <p className="mt-2 text-sm text-[#7f8c82]">Nothing recorded.</p>}
+        <ul className="mt-2 space-y-1">
+          {rows.map((row) => (
+            <li key={row.label} className="flex items-baseline justify-between gap-4 text-sm">
+              <span className={row.label === deny ? 'text-[#ff8b96]' : 'text-[#39FF14]'}>{row.label}</span>
+              <span className="text-[#7f8c82]">{row.value}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -132,14 +147,14 @@ export function Overview({ org, role, perms, devices, members, grants, sessions,
       </section>
 
       <section className="mt-6 border border-[#1a2420] px-5 py-5">
-        <p className={kicker}>Picture</p>
-        <h3 className="mt-1 text-2xl tracking-[-0.03em] text-[#f4fff2]">The organization at a glance</h3>
+        <p className={kicker}>Rings</p>
+        <h3 className="mt-1 text-2xl tracking-[-0.03em] text-[#f4fff2]">Shares of the organization</h3>
         <div className="mt-6 grid gap-8 md:grid-cols-2">
-          {showDevices && <Bars title="Devices by kind" rows={tally(devices, 'kind')} />}
-          {showPeople && <Bars title="People by role" rows={tally(members, 'role')} />}
-          {showPeople && <Bars title="Grants" rows={tally(grants, 'effect')} deny="deny" />}
-          {showSessions && <Bars title="Sessions by mode" rows={tally(sessions, 'mode')} />}
-          {showAudit && <Bars title="Audit results" rows={tally(events, 'result')} deny="deny" />}
+          {showDevices && <Ring title="Devices by kind" rows={tally(devices, 'kind')} />}
+          {showPeople && <Ring title="People by role" rows={tally(members, 'role')} />}
+          {showPeople && <Ring title="Grants" rows={tally(grants, 'effect')} deny="deny" />}
+          {showSessions && <Ring title="Sessions by mode" rows={tally(sessions, 'mode')} />}
+          {showAudit && <Ring title="Audit results" rows={tally(events, 'result')} deny="deny" />}
         </div>
       </section>
 

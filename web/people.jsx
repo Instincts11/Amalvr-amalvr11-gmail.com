@@ -47,9 +47,9 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
         <Action className={btnPrimary} perms={perms} permission="user:invite" testid="invite-user" onClick={() => setInviteOpen((open) => !open)}>Invite</Action>
       </div>
       <div>
-          <div className="mb-4 flex gap-6 border-b border-[#1a2420]">
+          <div className="mb-4 inline-flex overflow-hidden rounded-full border border-[#1a2420]">
             {['all', 'active', 'suspended'].map((item) => (
-              <button key={item} type="button" className={tab === item ? 'border-b border-[#39FF14] pb-2 text-sm capitalize text-[#39FF14]' : 'pb-2 text-sm capitalize text-[#7f8c82]'} onClick={() => setTab(item)}>{item}</button>
+              <button key={item} type="button" className={tab === item ? 'bg-[#39FF14] px-4 py-1.5 text-sm capitalize text-[#050505]' : 'px-4 py-1.5 text-sm capitalize text-[#7f8c82]'} onClick={() => setTab(item)}>{item}</button>
             ))}
           </div>
           <div className="mb-4 flex flex-wrap gap-2">
@@ -83,6 +83,12 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
               <button className={`${btnPrimary} mt-3`} type="submit">Send invite</button>
             </form>
           )}
+          <div className="hidden grid-cols-[minmax(0,1.6fr)_9rem_7rem_auto] gap-3 border-b border-[#1a2420] py-2 text-[11px] tracking-[0.16em] text-[#7f8c82] uppercase md:grid">
+            <span>Person</span>
+            <span>Role</span>
+            <span>Status</span>
+            <span />
+          </div>
           {paged.slice.map((member) => {
             const on = member.id === selectedId;
             return (
@@ -91,21 +97,20 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
                 data-testid="user-row"
                 data-user-id={member.id}
                 className={on
-                  ? 'cursor-pointer border-t border-[#1a2420] border-l-2 border-l-[#39FF14] py-2.5 pr-2 pl-2 transition-colors duration-200'
-                  : 'cursor-pointer border-t border-[#1a2420] py-2.5 pr-2 pl-2 transition-colors duration-200 hover:bg-[#39FF14]/[0.04]'}
+                  ? 'grid cursor-pointer items-center gap-3 border-b border-[#1a2420] bg-[#39FF14]/[0.04] py-3 md:grid-cols-[minmax(0,1.6fr)_9rem_7rem_auto]'
+                  : 'grid cursor-pointer items-center gap-3 border-b border-[#1a2420] py-3 hover:bg-[#39FF14]/[0.04] md:grid-cols-[minmax(0,1.6fr)_9rem_7rem_auto]'}
                 onClick={() => { setSelectedId(member.id); onOpen(member.id); }}
               >
-                <div className="mb-1.5 flex gap-2">
-                  <span className="text-xl leading-none text-[#39FF14]" aria-hidden="true">{(member.name || '?').slice(0, 1)}</span>
-                  <span>
-                    <span className="block text-lg">{member.name}</span>
-                    <span className="block text-xs text-[#7f8c82]">{member.email}</span>
-                    <span className="block text-xs text-[#7f8c82]">{member.status}</span>
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#39FF14] text-sm text-[#39FF14]" aria-hidden="true">{(member.name || '?').slice(0, 1)}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-base text-[#f4fff2]">{member.name}</span>
+                    <span className="block truncate text-xs text-[#7f8c82]">{member.email}</span>
                   </span>
                 </div>
                 {held(perms, 'user:role:update') ? (
                   <select
-                    className={`${field} mb-1.5`}
+                    className={field}
                     data-testid="role-select"
                     value={member.role}
                     onClick={(event) => event.stopPropagation()}
@@ -116,7 +121,8 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
                   >
                     {roles.map((item) => <option key={item.key} value={item.key}>{item.key}</option>)}
                   </select>
-                ) : <span className={`mb-3 inline-flex ${kicker}`}>{member.role}</span>}
+                ) : <span className={kicker}>{member.role}</span>}
+                <span className={member.status === 'suspended' ? 'w-fit rounded-full border border-[#ff8b96] px-2 py-0.5 text-xs text-[#ff8b96]' : 'w-fit rounded-full border border-[#39FF14] px-2 py-0.5 text-xs text-[#39FF14]'}>{member.status}</span>
                 <div className="flex flex-wrap gap-1.5" onClick={(event) => event.stopPropagation()}>
                   {member.id !== selfId && (
                     <>
