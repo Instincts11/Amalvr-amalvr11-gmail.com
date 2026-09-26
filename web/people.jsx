@@ -51,7 +51,7 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
         </div>
         <Action className={btnPrimary} perms={perms} permission="user:invite" testid="invite-user" onClick={() => setInviteOpen((open) => !open)}>Invite</Action>
       </div>
-      <div className="grid items-start gap-10 lg:grid-cols-[minmax(280px,0.9fr)_1.1fr]">
+      <div className="grid items-start gap-x-6 gap-y-4 lg:grid-cols-[minmax(220px,280px)_minmax(0,1fr)]">
         <div>
           <input
             className="mb-3 w-full border-0 bg-transparent py-1 text-sm outline-none placeholder:text-[#7f8c82]"
@@ -86,11 +86,11 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
                 data-testid="user-row"
                 data-user-id={member.id}
                 className={on
-                  ? 'cursor-pointer border-t border-[#1a2420] border-l-2 border-l-[#39FF14] py-4 pr-3 pl-3 transition-colors duration-200'
-                  : 'cursor-pointer border-t border-[#1a2420] py-4 pr-3 pl-3 transition-colors duration-200 hover:bg-[#39FF14]/[0.04]'}
+                  ? 'cursor-pointer border-t border-[#1a2420] border-l-2 border-l-[#39FF14] py-2.5 pr-2 pl-2 transition-colors duration-200'
+                  : 'cursor-pointer border-t border-[#1a2420] py-2.5 pr-2 pl-2 transition-colors duration-200 hover:bg-[#39FF14]/[0.04]'}
                 onClick={() => setSelectedId(member.id)}
               >
-                <div className="mb-3 flex gap-3">
+                <div className="mb-1.5 flex gap-2">
                   <span className="text-xl leading-none text-[#39FF14]" aria-hidden="true">{(member.name || '?').slice(0, 1)}</span>
                   <span>
                     <span className="block text-lg">{member.name}</span>
@@ -100,7 +100,7 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
                 </div>
                 {held(perms, 'user:role:update') ? (
                   <select
-                    className={`${field} mb-3`}
+                    className={`${field} mb-1.5`}
                     data-testid="role-select"
                     value={member.role}
                     onClick={(event) => event.stopPropagation()}
@@ -135,7 +135,7 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
           {members.length > 0 && filtered.length === 0 && <p className="py-4 text-sm text-[#7f8c82]">Nothing matches that filter.</p>}
           <Pager {...paged} />
         </div>
-        <aside className="lg:sticky lg:top-8 lg:pt-6">
+        <aside className="lg:sticky lg:top-8">
           {selected && (
             <>
               <p className={kicker}>Selected</p>
