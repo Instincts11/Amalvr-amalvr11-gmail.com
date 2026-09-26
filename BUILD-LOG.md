@@ -182,6 +182,12 @@ The content-type rejection called `req.destroy()`. On Windows that resets the so
 
 `scripts/check-ops.js` boots a throwaway database on port 8126, away from `check-api` (8123) and Playwright (8124). It checks `{ ok: true }`, the three security headers, a `text/plain` login (400), an empty logout (200), a normal JSON login (200), and a body over 1 MB (400). First run died in `finally` with `EBUSY` unlinking the database while the process still held it, and that exception hid the assertion results. The script now waits for exit before deleting. Re-run: 11 passed.
 
+## Phase 10 — console modules
+
+### 2026-09-26 — the sign-in form moved, the test ids did not
+
+`LoginForm` is `web/login.jsx`. The invite page still renders it after accept, with the heading "Invite accepted", and `App` still renders it when there is no session. `data-testid` values on the form, the inputs, the submit button, and the alert are the same strings. Nothing in this move reads a role.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.
