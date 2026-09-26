@@ -1,29 +1,46 @@
-// Per-request context: turn a bearer token into an authenticated caller.
-//
-// YOURS TO WRITE. This file ships as a stub so the server boots and every
-// authenticated request fails loudly instead of appearing to work.
-//
-// What it has to do (BRIEF.md §3, PERMISSIONS.md §6):
-//   - read the bearer token, verify it with verifyAccessToken() from ./auth.js
-//   - look the membership up and refuse a token whose org or membership is gone
-//   - THE TOKEN'S org CLAIM IS THE ONLY ORG THE CALLER MAY ADDRESS. A request that
-//     names a different org is INVISIBLE — 404, never 403. Isolation is structural:
-//     the caller cannot name another org, rather than being filtered afterwards.
-//   - check freshness against memberships.perm_version (AUTH-DATA-MODEL.md §3), so a
-//     role or grant change takes effect on the NEXT request, not at token expiry
-//   - throw through the one error path in ./http.js
-//
-// authenticate(db, secret) returns (req, params) => caller, where caller carries at
-// least { userId, orgId, role, membership, claims }.
+// Token to caller. The org claim is the only org this request may name.
+// A path org that differs is 404 before any permission check runs.
 
-const todo = () =>
-  Object.assign(
-    new Error('TODO: server/context.js — authenticate() is yours to write (BRIEF.md §3).'),
-    { code: 'NOT_IMPLEMENTED' }
-  );
+import { verifyAccessToken } from './auth.js';
+import { notFound, tokenStale, unauthenticated } from './http.js';
 
 export function authenticate(db, secret) {
   return function buildContext(req, params) {
-    throw todo();
+    const header = req.headers.authorization ?? '';
+    const match = /^Bearer\s+(\S+)/i.exec(header);
+    if (!match) throw unauthenticated('missing bearer token');
+
+    const claims = verifyAccessToken(match[1], secret);
+    if (params?.org && params.org !== claims.org) throw notFound();
+
+    const membership = db.prepare(
+      `SELECT id, org_id, user_id, role, status, perm_version
+         FROM memberships WHERE user_id = ? AND org_id = ?`
+    ).get(claims.sub, claims.org);
+
+    if (!membership || membership.status === 'removed' || membership.status === 'invited') {
+      throw unauthenticated('not a member of this org');
+    }
+
+    const org = db.prepare(
+      `SELECT id, name, theme, max_session_minutes, deleted_at
+         FROM organizations WHERE id = ?`
+    ).get(claims.org);
+    if (!org || org.deleted_at) throw unauthenticated('not a member of this org');
+
+    // Compare with !==. A newer pv and an older pv are both stale.
+    // Suspension bumps pv, so a token minted before the suspension dies here
+    // as TOKEN_STALE. A token minted after it reaches the route, which then
+    // refuses with reason suspended.
+    if (membership.perm_version !== claims.pv) throw tokenStale();
+
+    return {
+      userId: claims.sub,
+      orgId: claims.org,
+      role: membership.role,
+      membership,
+      claims,
+      org,
+    };
   };
 }

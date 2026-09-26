@@ -56,8 +56,28 @@ A parse failure has to be caught inside the function. Phase 0 showed the harness
 
 ## Phase 2 — caller context and the resolution engine
 
-_This is where most people's first model is wrong. Write down the model you started with, the
-observation that broke it, and the model you moved to. Be specific about the observation._
+### 2026-09-26 — specificity felt right, and it is wrong
+
+First sketch was "the narrower grant wins": an org-wide deny, then a device allow, and the device allow carves a hole. That is how most ACL editors are explained. `check-permissions.js` has a case inserted at runtime (`g_carve`, allow `device:terminal` on `dev_lab_win_01` on top of Sam's org-wide deny) whose label is the result, not the rule. Checked denies before allows. The case passed: effect stays `deny`. A narrower allow does not survive a broader refusal. Same order also keeps Sam's `device:control` allow on `dev_lab_win_01`, because nothing denies that one.
+
+### 2026-09-26 — the org view counts a single device
+
+Expected the viewer's org-level `device:view` to stay `allow`. The role baseline contains it, and the deny is only on `dev_kiosk_lobby_01`. Printed both:
+
+```
+org device:view      deny  source grant:grt_viewer_deny_kiosk  reason explicit_deny
+lab-win device:view  allow source role:viewer
+org session:start    allow source grant:grt_viewer_start_session
+org device:list      allow source role:viewer
+```
+
+The org question takes every live grant in the org. One device deny locks that permission for navigation. One device allow opens it (`session:start` is not in the viewer baseline and still comes back allow). The row question does not: lab-win still allows `device:view`. `device:list` is untouched, so the Devices nav stays while a permission that *is* the nav gate would disappear. That split is what the console has to render, not reconcile.
+
+`device:*` is expanded from `permissions.resource`, not from a list of seven names. The overlay permission in this database is `device:reboot` (resource `device`). A hardcoded device list would report it implicit on the device where the grant allows it.
+
+`check-permissions.js` — 35 passed. `check-personalisation.js` — 18 passed, role `reviewer`, source strings `grant:grt_p_bb3398_allow` and `grant:grt_p_bb3398_deny`. No cache. A cache keyed by user id would hand Acme's answer to Globex for Dana inside one TTL, and a cache of the resolved set would keep an expired window alive until restart. The membership lookup is the indexed one the schema already has (`memberships_by_user`).
+
+Freshness in `context.js` uses `!==` against `memberships.perm_version`, and a path `:org` that is not the token's `org` throws `notFound()` before that lookup's result is used for the other org. Suspended with a *matching* pv still builds a caller; the route then refuses. A token from before the suspension fails freshness first and never gets a `suspended` reason. Those two outcomes are both in AUTH-DATA-MODEL.md and they cannot happen on the same token.
 
 ## Phase 3 — orgs, members, invites
 
