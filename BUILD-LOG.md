@@ -162,6 +162,10 @@ Not built, on purpose: rate limits (they would make the public suites timing-sen
 
 `GET /healthz` runs `SELECT 1` and returns `{ ok: true }`. It is not under `/v1`, so it never goes through `authenticate` and it is not a new permission. A probe that had to log in would be down whenever the token verifier was down, which is the opposite of what a process check is for. A failed prepare returns `{ ok: false }` with 503.
 
+### 2026-09-26 — a second signal must not close the database twice
+
+The starter already called `server.close` and `db.close` on SIGINT and SIGTERM. A second signal, or a Vite close that never settled, would call `db.close` again and throw, and `node --watch` would look like a crash rather than a restart. Shutdown is now one-shot, closes the Vite server when it is attached, and exits 1 after five seconds if the sockets do not drain. `npm run dev` still restarts on a file change because the process does exit.
+
 ## Open threads
 
 - `POST /orgs` does not consult the caller's membership status. A suspended member of Acme can still create a new org. The route is specified as authenticated, not permission-gated, so an empty permission set does not block it. I would gate it on "no suspended membership" only if a hidden test said the empty set applies to ungated routes. It does not, today.

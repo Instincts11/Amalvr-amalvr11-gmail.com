@@ -134,11 +134,24 @@ server.listen(PORT, () => {
   console.log(`RemoteOps on http://localhost:${PORT}  (${DEV ? 'development' : 'production'})`);
 });
 
-for (const signal of ['SIGINT', 'SIGTERM']) {
-  process.on(signal, () => {
-    server.close(() => {
+let closing = false;
+function shutdown(signal) {
+  if (closing) return;
+  closing = true;
+  console.log(`shutting down on ${signal}`);
+  const force = setTimeout(() => process.exit(1), 5000);
+  force.unref();
+  server.close(() => {
+    const finish = () => {
       db.close();
+      clearTimeout(force);
       process.exit(0);
-    });
+    };
+    if (vite) vite.close().then(finish, finish);
+    else finish();
   });
+}
+
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, () => shutdown(signal));
 }
