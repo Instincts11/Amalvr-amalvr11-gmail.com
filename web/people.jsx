@@ -4,25 +4,17 @@ import { Action, held } from './action.jsx';
 import { btnPrimary, field, kicker, pageTitle } from './ui.js';
 import { Pager, usePaged } from './pager.jsx';
 
-export function People({ orgId, members, roles, perms, selfId, inviteOpen, setInviteOpen, run, reload }) {
+export function People({ orgId, members, roles, perms, selfId, inviteOpen, setInviteOpen, run, onOpen, reload }) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState(roles[0]?.key ?? 'viewer');
   const [query, setQuery] = useState('');
+  const [tab, setTab] = useState('all');
+  const [rolePill, setRolePill] = useState('');
   const [selectedId, setSelectedId] = useState(members[0]?.id ?? '');
-  const [effective, setEffective] = useState(null);
   const [invites, setInvites] = useState([]);
   useEffect(() => {
     if (!members.some((member) => member.id === selectedId)) setSelectedId(members[0]?.id ?? '');
   }, [members, selectedId]);
-  const selected = members.find((member) => member.id === selectedId) ?? members[0];
-  useEffect(() => {
-    if (!selected) return undefined;
-    let cancel = false;
-    api('GET', `/v1/orgs/${orgId}/users/${selected.id}/effective`)
-      .then((body) => { if (!cancel) setEffective(body); })
-      .catch(() => { if (!cancel) setEffective(null); });
-    return () => { cancel = true; };
-  }, [orgId, selected]);
   useEffect(() => {
     if (!held(perms, 'user:invite')) return undefined;
     let cancel = false;
@@ -32,10 +24,13 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
     return () => { cancel = true; };
   }, [orgId, perms, inviteOpen]);
   const needle = query.trim().toLowerCase();
-  const filtered = needle
-    ? members.filter((member) => `${member.name} ${member.email} ${member.role} ${member.status}`.toLowerCase().includes(needle))
-    : members;
-  const paged = usePaged(filtered, 8, `${orgId}:${needle}`);
+  const filtered = members.filter((member) => {
+    if (tab !== 'all' && member.status !== tab) return false;
+    if (rolePill && member.role !== rolePill) return false;
+    if (!needle) return true;
+    return `${member.name} ${member.email} ${member.role} ${member.status}`.toLowerCase().includes(needle);
+  });
+  const paged = usePaged(filtered, 8, `${orgId}:${needle}:${tab}:${rolePill}`);
   return (
     <section>
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -46,13 +41,23 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
             <p>Roles and ranks are read from the database. The page does not keep its own permission table.</p>
             <p>The last owner cannot leave, be removed, be suspended, or be demoted. Anyone else needs a strictly higher rank to change a membership.</p>
             <p>An invite address must already be lowercase. The token is shown once and is stored only as a hash.</p>
-            <p>The panel on the right is the permission set the server resolved for the selected person, including every deny.</p>
+            <p>Open a person to see the permission set the server resolved, including every deny.</p>
           </div>
         </div>
         <Action className={btnPrimary} perms={perms} permission="user:invite" testid="invite-user" onClick={() => setInviteOpen((open) => !open)}>Invite</Action>
       </div>
-      <div className="grid items-start gap-x-6 gap-y-4 lg:grid-cols-[minmax(220px,280px)_minmax(0,1fr)]">
-        <div>
+      <div>
+          <div className="mb-4 flex gap-6 border-b border-[#1a2420]">
+            {['all', 'active', 'suspended'].map((item) => (
+              <button key={item} type="button" className={tab === item ? 'border-b border-[#39FF14] pb-2 text-sm capitalize text-[#39FF14]' : 'pb-2 text-sm capitalize text-[#7f8c82]'} onClick={() => setTab(item)}>{item}</button>
+            ))}
+          </div>
+          <div className="mb-4 flex flex-wrap gap-2">
+            <button type="button" className={rolePill === '' ? 'rounded-full bg-[#39FF14] px-3 py-1 text-xs text-[#050505]' : 'rounded-full border border-[#1a2420] px-3 py-1 text-xs text-[#7f8c82]'} onClick={() => setRolePill('')}>All roles</button>
+            {roles.map((item) => (
+              <button key={item.key} type="button" className={rolePill === item.key ? 'rounded-full bg-[#39FF14] px-3 py-1 text-xs text-[#050505]' : 'rounded-full border border-[#1a2420] px-3 py-1 text-xs text-[#7f8c82]'} onClick={() => setRolePill(item.key)}>{item.key}</button>
+            ))}
+          </div>
           <input
             className="mb-3 w-full border-0 bg-transparent py-1 text-sm outline-none placeholder:text-[#7f8c82]"
             aria-label="Filter people"
@@ -79,7 +84,7 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
             </form>
           )}
           {paged.slice.map((member) => {
-            const on = member.id === selected?.id;
+            const on = member.id === selectedId;
             return (
               <article
                 key={member.id}
@@ -88,7 +93,7 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
                 className={on
                   ? 'cursor-pointer border-t border-[#1a2420] border-l-2 border-l-[#39FF14] py-2.5 pr-2 pl-2 transition-colors duration-200'
                   : 'cursor-pointer border-t border-[#1a2420] py-2.5 pr-2 pl-2 transition-colors duration-200 hover:bg-[#39FF14]/[0.04]'}
-                onClick={() => setSelectedId(member.id)}
+                onClick={() => { setSelectedId(member.id); onOpen(member.id); }}
               >
                 <div className="mb-1.5 flex gap-2">
                   <span className="text-xl leading-none text-[#39FF14]" aria-hidden="true">{(member.name || '?').slice(0, 1)}</span>
@@ -134,34 +139,8 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
           })}
           {members.length > 0 && filtered.length === 0 && <p className="py-4 text-sm text-[#7f8c82]">Nothing matches that filter.</p>}
           <Pager {...paged} />
-        </div>
-        <aside className="lg:sticky lg:top-8">
-          {selected && (
-            <>
-              <p className={kicker}>Selected</p>
-              <h3 className="mt-3 text-4xl leading-[0.95] tracking-[-0.045em] text-[#f4fff2]">{selected.name}</h3>
-              <p className="mt-3 text-base text-[#7f8c82]">{selected.email}</p>
-              <p className="mt-6 flex gap-6">
-                <span className={kicker}>{effective?.role ?? selected.role}</span>
-                <span className={kicker}>{selected.status}</span>
-              </p>
-              {effective && (
-                <div className="mt-8 w-full border-t border-[#1a2420] pt-4">
-                  <p className={kicker}>Resolved by the server</p>
-                  <ul className="mt-3 w-full">
-                    {Object.entries(effective.permissions ?? {}).map(([key, item]) => (
-                      <li key={key} className="flex w-full items-baseline justify-between gap-8 border-b border-[#1a2420] py-2 text-sm">
-                        <span className={item.effect === 'allow' ? 'text-[#39FF14]' : 'text-[#ff8b96]'}>{key}</span>
-                        <span className="text-right text-[#7f8c82]">{item.effect}{item.reason ? ` · ${item.reason}` : ''}{item.source ? ` · ${item.source}` : ''}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </>
-          )}
           {held(perms, 'user:invite') && invites.some((invite) => !invite.accepted_at && !invite.revoked_at) && (
-            <div className="mt-10 border-t border-[#1a2420] pt-4">
+            <div className="mt-8 border-t border-[#1a2420] pt-4">
               <p className={kicker}>Open invites</p>
               <ul className="mt-3 space-y-2 text-sm">
                 {invites.filter((invite) => !invite.accepted_at && !invite.revoked_at).map((invite) => (
@@ -176,7 +155,6 @@ export function People({ orgId, members, roles, perms, selfId, inviteOpen, setIn
               </ul>
             </div>
           )}
-        </aside>
       </div>
     </section>
   );

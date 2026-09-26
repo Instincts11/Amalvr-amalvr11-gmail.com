@@ -8,3 +8,8 @@ export function viewFromPath(pathname) {
 export function pathForView(view) {
   return view === 'home' ? '/' : `/${view}`;
 }
+
+export function personIdFromPath(pathname) {
+  const parts = String(pathname || '/').split('/').filter(Boolean);
+  return parts[0] === 'people' && parts[1] ? decodeURIComponent(parts[1]) : '';
+}

@@ -9,7 +9,8 @@ import { Devices } from './devices.jsx';
 import { Grants } from './grants.jsx';
 import { Overview } from './overview.jsx';
 import { People } from './people.jsx';
-import { pathForView, viewFromPath } from './routes.js';
+import { Person } from './person.jsx';
+import { pathForView, personIdFromPath, viewFromPath } from './routes.js';
 
 const THEME_COLOR = {
   cobalt: '#0e1c36',
@@ -91,12 +92,21 @@ const NAV = [
 
 function Console({ session, setSession }) {
   const [view, setViewState] = useState(() => viewFromPath(window.location.pathname));
+  const [personId, setPersonId] = useState(() => personIdFromPath(window.location.pathname));
   const orgSeen = useRef(session.org.id);
 
   function setView(key) {
     const path = pathForView(key);
     if (window.location.pathname !== path) window.history.pushState({ view: key }, '', path);
     setViewState(key);
+    setPersonId('');
+  }
+
+  function openPerson(id) {
+    const path = `/people/${encodeURIComponent(id)}`;
+    window.history.pushState({ view: 'people', personId: id }, '', path);
+    setViewState('people');
+    setPersonId(id);
   }
   const [devices, setDevices] = useState([]);
   const [devicesReady, setDevicesReady] = useState(false);
@@ -127,6 +137,7 @@ function Console({ session, setSession }) {
   useEffect(() => {
     function onPop() {
       setViewState(viewFromPath(window.location.pathname));
+      setPersonId(personIdFromPath(window.location.pathname));
     }
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
@@ -139,6 +150,7 @@ function Console({ session, setSession }) {
     setInviteOpen(false);
     setNotice('');
     if (window.location.pathname !== '/') window.history.replaceState({ view: 'home' }, '', '/');
+    setPersonId('');
     setViewState('home');
   }, [org.id]);
 
@@ -154,24 +166,24 @@ function Console({ session, setSession }) {
         setDevicesReady(true);
       }).catch(fail);
     }
-    if ((view === 'home' || view === 'people') && held(perms, 'user:read')) {
+    if ((view === 'home' || view === 'people' || personId) && held(perms, 'user:read')) {
       api('GET', `${path}/members`).then((body) => {
         if (cancel) return;
         setMembers(body.members);
         setRoles(body.roles);
       }).catch(fail);
     }
-    if ((view === 'home' || view === 'grants') && held(perms, 'user:read')) {
+    if ((view === 'home' || view === 'grants' || personId) && held(perms, 'user:read')) {
       api('GET', `${path}/grants`).then((body) => { if (!cancel) setGrants(body.grants); }).catch(fail);
     }
-    if ((view === 'home' || view === 'sessions') && held(perms, 'session:view')) {
+    if ((view === 'home' || view === 'sessions' || personId) && held(perms, 'session:view')) {
       api('GET', `${path}/sessions`).then((body) => { if (!cancel) setSessions(body.sessions); }).catch(fail);
     }
-    if ((view === 'home' || view === 'audit') && held(perms, 'audit:read')) {
+    if ((view === 'home' || view === 'audit' || personId) && held(perms, 'audit:read')) {
       api('GET', `${path}/audit?limit=200`).then((body) => { if (!cancel) setEvents(body.events); }).catch(fail);
     }
     return () => { cancel = true; };
-  }, [view, org.id, session.token]);
+  }, [view, org.id, session.token, personId]);
 
   async function switchOrg(orgId) {
     if (orgId === org.id) return;
@@ -273,7 +285,7 @@ function Console({ session, setSession }) {
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
       <header className="flex items-center gap-4 border-b border-[#1a2420] px-6 py-3 md:px-10">
-        <p className="shrink-0 text-[11px] tracking-[0.16em] text-[#39FF14] uppercase">{pathForView(view)}</p>
+        <p className="shrink-0 text-[11px] tracking-[0.16em] text-[#39FF14] uppercase">{personId ? `/people/${personId}` : pathForView(view)}</p>
         <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
           {session.orgs.map((item) => (
             <button
@@ -366,8 +378,23 @@ function Console({ session, setSession }) {
             run={run}
           />
         )}
-        {view === 'people' && (
-          <People orgId={org.id} members={members} roles={roles} perms={perms} selfId={session.user.id} inviteOpen={inviteOpen} setInviteOpen={setInviteOpen} run={run} reload={() => setView('devices') || setTimeout(() => setView('people'), 0)} />
+        {view === 'people' && personId && (
+          <Person
+            orgId={org.id}
+            member={members.find((item) => item.id === personId)}
+            roles={roles}
+            perms={perms}
+            selfId={session.user.id}
+            grants={grants}
+            sessions={sessions}
+            events={events}
+            run={run}
+            reload={() => setView('devices') || setTimeout(() => openPerson(personId), 0)}
+            onBack={() => setView('people')}
+          />
+        )}
+        {view === 'people' && !personId && (
+          <People orgId={org.id} members={members} roles={roles} perms={perms} selfId={session.user.id} inviteOpen={inviteOpen} setInviteOpen={setInviteOpen} run={run} onOpen={openPerson} reload={() => setView('devices') || setTimeout(() => setView('people'), 0)} />
         )}
         {view === 'grants' && (
           <Grants
